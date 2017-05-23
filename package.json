@@ -1,0 +1,49 @@
+{
+  "name": "babel-plugin-react-flow-props-to-prop-types",
+  "version": "0.0.0",
+  "description": "Convert Flow React props annotation to PropTypes",
+  "main": "index.js",
+  "author": "James Kyle <me@thejameskyle.com>",
+  "license": "MIT",
+  "repository": "thejameskyle/babel-plugin-react-flow-props-to-prop-types",
+  "scripts": {
+    "precommit": "lint-staged --verbose",
+    "prepublish": "yarn build",
+    "format": "yarn format-files -s '{src,test}/**/*.js'",
+    "format-files": "prettier --write --trailing-comma all --single-quote --no-bracket-spacing",
+    "flow": "flow",
+    "flow-coverage": "flow-coverage-report -f ./node_modules/.bin/flow -i '{src,test}/**/*.js' -o coverage/flow -t html -t json -t text --threshold 70",
+    "delete": "rm -rf lib",
+    "build": "yarn delete && babel src -d lib --ignore __tests__",
+    "watch": "yarn delete && yarn build -s -- -w",
+    "test": "jest",
+    "dev": "yarn test -s -- --watch",
+    "ci": "yarn test -- --runInBand --coverage && yarn flow && yarn flow-coverage"
+  },
+  "devDependencies": {
+    "ast-pretty-print": "^1.1.5",
+    "babel-cli": "^6.24.1",
+    "babel-plugin-tester": "^3.0.0",
+    "babel-preset-env": "^1.4.0",
+    "babel-preset-flow": "^6.23.0",
+    "flow-bin": "^0.46.0",
+    "flow-coverage-report": "^0.3.0",
+    "husky": "^0.13.3",
+    "jest": "^20.0.3",
+    "lint-staged": "^3.4.2",
+    "prettier": "^1.3.1",
+    "strip-indent": "^2.0.0"
+  },
+  "lint-staged": {
+    "*.js": [
+      "yarn format-files -s",
+      "git add"
+    ]
+  },
+  "jest": {
+    "coverageDirectory": "coverage/jest"
+  },
+  "dependencies": {
+    "babel-types": "^6.24.1"
+  }
+}
