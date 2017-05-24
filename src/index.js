@@ -4,7 +4,7 @@ import * as t from 'babel-types';
 import isReactComponentSuperClass from './isReactComponentSuperClass';
 import findPropsClassProperty from './findPropsClassProperty';
 import convertTypeToPropTypes from './convertTypeToPropTypes';
-import log from './log';
+import {log} from 'babel-log';
 
 export default function() {
   return {
@@ -25,7 +25,16 @@ export default function() {
           );
         }
 
-        let objectExpression = convertTypeToPropTypes(typeAnnotation);
+        let propTypesRef = path.hub.file.addImport(
+          'prop-types',
+          'default',
+          'PropTypes',
+        );
+
+        let objectExpression = convertTypeToPropTypes(
+          typeAnnotation,
+          propTypesRef,
+        );
 
         let propTypesClassProperty = t.classProperty(
           t.identifier('propTypes'),

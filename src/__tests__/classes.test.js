@@ -77,6 +77,7 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {};
         }
@@ -90,6 +91,7 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.PureComponent {
           static propTypes = {};
         }
@@ -109,13 +111,14 @@ pluginTester({
     {
       title: 'match React if binding correct default import',
       code: `
-        import React from 'react';
+        import React from "react";
         class Foo extends React.Component {
           props: {};
         }
       `,
       output: `
-        import React from 'react';
+        import _PropTypes from "prop-types";
+        import React from "react";
         class Foo extends React.Component {
           static propTypes = {};
         }
@@ -125,13 +128,14 @@ pluginTester({
     {
       title: 'match React if binding correct named import',
       code: `
-        import { Component } from 'react';
+        import { Component } from "react";
         class Foo extends Component {
           props: {};
         }
       `,
       output: `
-        import { Component } from 'react';
+        import _PropTypes from "prop-types";
+        import { Component } from "react";
         class Foo extends Component {
           static propTypes = {};
         }
@@ -141,7 +145,7 @@ pluginTester({
     {
       title: 'dont match React if binding incorrect named import',
       code: `
-        import { x } from 'react';
+        import { x } from "react";
         class Foo extends x {
           props: {};
         }
@@ -151,13 +155,14 @@ pluginTester({
     {
       title: 'match React if binding correct renamed named import',
       code: `
-        import { Component as x } from 'react';
+        import { Component as x } from "react";
         class Foo extends x {
           props: {};
         }
       `,
       output: `
-        import { Component as x } from 'react';
+        import _PropTypes from "prop-types";
+        import { Component as x } from "react";
         class Foo extends x {
           static propTypes = {};
         }
@@ -185,9 +190,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.any.isRequired
+            a: _PropTypes.any.isRequired
           };
         }
       `,
@@ -202,9 +208,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.any.isRequired
+            a: _PropTypes.any.isRequired
           };
         }
       `,
@@ -219,9 +226,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.number.isRequired
+            a: _PropTypes.number.isRequired
           };
         }
       `,
@@ -236,9 +244,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.bool.isRequired
+            a: _PropTypes.bool.isRequired
           };
         }
       `,
@@ -253,9 +262,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.string.isRequired
+            a: _PropTypes.string.isRequired
           };
         }
       `,
@@ -292,9 +302,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.number.isRequired
+            a: _PropTypes.number.isRequired
           };
         }
       `,
@@ -309,9 +320,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.bool.isRequired
+            a: _PropTypes.bool.isRequired
           };
         }
       `,
@@ -326,9 +338,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.string.isRequired
+            a: _PropTypes.string.isRequired
           };
         }
       `,
@@ -343,9 +356,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.arrayOf(PropTypes.string).isRequired
+            a: _PropTypes.arrayOf(_PropTypes.string).isRequired
           };
         }
       `,
@@ -360,9 +374,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.func.isRequired
+            a: _PropTypes.func.isRequired
           };
         }
       `,
@@ -388,9 +403,10 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.array.isRequired
+            a: _PropTypes.array.isRequired
           };
         }
       `,
@@ -408,10 +424,11 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         type a = number;
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.number.isRequired
+            a: _PropTypes.number.isRequired
           };
         }
       `,
@@ -427,10 +444,11 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         interface a {}
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.shape({}).isRequired
+            a: _PropTypes.shape({}).isRequired
           };
         }
       `,
@@ -446,10 +464,11 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class a {}
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.instanceOf(a).isRequired
+            a: _PropTypes.instanceOf(a).isRequired
           };
         }
       `,
@@ -467,10 +486,11 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
             // This is the a prop
-            a: PropTypes.any.isRequired
+            a: _PropTypes.any.isRequired
           };
         }
       `,
@@ -488,11 +508,12 @@ pluginTester({
         }
       `,
       output: `
+        import _PropTypes from "prop-types";
         class Foo extends React.Component {
           static propTypes = {
-            a: PropTypes.shape({
+            a: _PropTypes.shape({
               // This is the a.b prop
-              b: PropTypes.any.isRequired
+              b: _PropTypes.any.isRequired
             }).isRequired
           };
         }

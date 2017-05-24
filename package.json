@@ -21,7 +21,6 @@
     "ci": "yarn test -- --runInBand --coverage && yarn flow && yarn flow-coverage"
   },
   "devDependencies": {
-    "ast-pretty-print": "^1.1.5",
     "babel-cli": "^6.24.1",
     "babel-plugin-tester": "^3.0.0",
     "babel-preset-env": "^1.4.0",
@@ -44,6 +43,7 @@
     "coverageDirectory": "coverage/jest"
   },
   "dependencies": {
+    "babel-log": "^1.0.1",
     "babel-types": "^6.24.1"
   }
 }
