@@ -20,6 +20,9 @@ Out:
 
 ```js
 class MyComponent extends React.Component {
+  props: {
+    className: string
+  };
   static propTypes = {
     className: PropTypes.string.isRequired
   };

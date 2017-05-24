@@ -43,8 +43,7 @@ export default function() {
 
         propTypesClassProperty.static = true;
 
-        props.insertBefore(propTypesClassProperty);
-        props.remove();
+        props.insertAfter(propTypesClassProperty);
       },
     },
   };

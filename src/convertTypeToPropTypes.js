@@ -3,6 +3,25 @@ import type {Path, Node} from './types';
 import * as t from 'babel-types';
 import {log} from 'babel-log';
 
+function cloneComments(comments) {
+  return (
+    comments &&
+    comments.map(comment => {
+      comment = t.clone(comment);
+      comment.start = comment.start + 0.0001; // Force printer to print... (sigh)
+      return comment;
+    })
+  );
+}
+
+function inheritsComments(a, b) {
+  return t.inheritsComments(a, {
+    trailingComments: cloneComments(b.trailingComments),
+    leadingComments: cloneComments(b.leadingComments),
+    innerComments: cloneComments(b.innerComments),
+  });
+}
+
 type Options = {
   propTypesRef: Node,
 };
@@ -55,7 +74,7 @@ converters.ObjectTypeProperty = (path: Path, opts: Options) => {
   let key = path.get('key');
   let value = path.get('value');
 
-  let id = t.inheritsComments(t.identifier(key.node.name), key.node);
+  let id = inheritsComments(t.identifier(key.node.name), key.node);
 
   let converted = convert(value, opts);
 
@@ -105,7 +124,7 @@ let convert = (path: Path, opts: {propTypesRef: Node}): Node => {
     throw path.buildCodeFrameError(`No converter for node type: ${path.type}`);
   }
 
-  return t.inheritsComments(converter(path, opts), path.node);
+  return inheritsComments(converter(path, opts), path.node);
 };
 
 export default function convertTypeToPropTypes(
