@@ -663,6 +663,10 @@ babel-preset-jest@^20.0.3:
   dependencies:
     babel-plugin-jest-hoist "^20.0.3"
 
+babel-react-components@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/babel-react-components/-/babel-react-components-1.0.1.tgz#b3a81c8f6dc5edd3b3289f6b303f99f66e23bc1c"
+
 babel-register@^6.24.1:
   version "6.24.1"
   resolved "https://registry.yarnpkg.com/babel-register/-/babel-register-6.24.1.tgz#7e10e13a2f71065bdfad5a1787ba45bca6ded75f"

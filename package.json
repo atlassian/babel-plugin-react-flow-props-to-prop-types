@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "babel-log": "^1.0.1",
+    "babel-react-components": "^1.0.1",
     "babel-types": "^6.24.1"
   }
 }

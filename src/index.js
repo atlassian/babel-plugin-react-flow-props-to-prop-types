@@ -1,7 +1,7 @@
 // @flow
 import type {Node, Path} from './types';
 import * as t from 'babel-types';
-import isReactComponentSuperClass from './isReactComponentSuperClass';
+import {isReactComponentClass} from 'babel-react-components';
 import findPropsClassProperty from './findPropsClassProperty';
 import convertTypeToPropTypes from './convertTypeToPropTypes';
 import {log} from 'babel-log';
@@ -11,9 +11,9 @@ export default function() {
     name: 'react-flow-props-to-prop-types',
     visitor: {
       ClassDeclaration(path: Path) {
-        const superClass = path.get('superClass');
-        if (!superClass.node) return;
-        if (!isReactComponentSuperClass(superClass)) return;
+        if (!isReactComponentClass(path)) {
+          return;
+        }
 
         let props = findPropsClassProperty(path.get('body'));
         if (!props) return;
