@@ -85,13 +85,91 @@ pluginTester({
     {
       title: 'match super class member expression react pure component',
       code: `
+        class Foo extends React.PureComponent {
+          props: {};
+        }
+      `,
+      output: `
+        class Foo extends React.PureComponent {
+          static propTypes = {};
+        }
+      `,
+    },
+
+    {
+      title: 'dont match React if binding not correct import',
+      code: `
+        let React = {};
+        class Foo extends React.Component {
+          props: {};
+        }
+      `,
+    },
+
+    {
+      title: 'match React if binding correct default import',
+      code: `
+        import React from 'react';
         class Foo extends React.Component {
           props: {};
         }
       `,
       output: `
+        import React from 'react';
         class Foo extends React.Component {
           static propTypes = {};
+        }
+      `,
+    },
+
+    {
+      title: 'match React if binding correct named import',
+      code: `
+        import { Component } from 'react';
+        class Foo extends Component {
+          props: {};
+        }
+      `,
+      output: `
+        import { Component } from 'react';
+        class Foo extends Component {
+          static propTypes = {};
+        }
+      `,
+    },
+
+    {
+      title: 'dont match React if binding incorrect named import',
+      code: `
+        import { x } from 'react';
+        class Foo extends x {
+          props: {};
+        }
+      `,
+    },
+
+    {
+      title: 'match React if binding correct renamed named import',
+      code: `
+        import { Component as x } from 'react';
+        class Foo extends x {
+          props: {};
+        }
+      `,
+      output: `
+        import { Component as x } from 'react';
+        class Foo extends x {
+          static propTypes = {};
+        }
+      `,
+    },
+
+    {
+      title: 'dont match React if binding incorrect renamed named import',
+      code: `
+        import { x as Component } from 'react';
+        class Foo extends Component {
+          props: {};
         }
       `,
     },

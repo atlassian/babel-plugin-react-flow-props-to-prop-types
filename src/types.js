@@ -16,6 +16,7 @@ export type Path = {
 };
 
 export type Binding = {
+  kind: string,
   path: Path,
 };
 
