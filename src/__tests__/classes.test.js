@@ -310,6 +310,28 @@ pluginTester({
         }
       `,
     },
+    {
+      title: 'reference props',
+      code: `
+        type Props = {
+          a: any
+        };
+        class Foo extends React.Component {
+          props: Props;
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        type Props = {
+          a: any
+        };
+        class Foo extends React.Component {
+          static propTypes = {
+            a: _PropTypes.any.isRequired
+          };
+        }
+      `,
+    },
 
     // comments
     {
