@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-react-flow-props-to-prop-types",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Convert Flow React props annotation to PropTypes",
   "main": "index.js",
   "author": "James Kyle <me@thejameskyle.com>",
