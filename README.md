@@ -2,6 +2,10 @@
 
 > Convert Flow React props annotation to PropTypes
 
+- Supports most Flow types
+- Maintains comments
+- Works across modules (can import types)
+
 ## Example
 
 In:
