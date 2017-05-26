@@ -2,6 +2,8 @@
 import type {Path, Node} from './types';
 import * as t from 'babel-types';
 import {log} from 'babel-log';
+import {loadImportSync} from 'babel-file-loader';
+import matchExported from './matchExported';
 
 function cloneComments(comments) {
   return (
@@ -53,6 +55,10 @@ converters.VoidTypeAnnotation = createThrows('void types unsupported');
 converters.FunctionTypeAnnotation = createConversion('func');
 converters.NullableTypeAnnotation = createThrows('maybe types unsupported');
 converters.TupleTypeAnnotation = createConversion('array');
+
+converters.QualifiedTypeIdentifier = createThrows(
+  'qualified type identifiers unsupported',
+);
 
 converters.TypeAnnotation = (path: Path, opts: Options) => {
   return convert(path.get('typeAnnotation'), opts);
@@ -111,20 +117,60 @@ converters.InterfaceDeclaration = (path: Path, opts: Options) => {
   return convert(path.get('body'), opts);
 };
 
-converters.ClassDeclaration = (path: Path, opts: Options) => {
+converters.ClassDeclaration = (path: Path, opts: Options, id?: Node) => {
   return t.callExpression(refPropTypes(t.identifier('instanceOf'), opts), [
-    t.identifier(path.node.id.name),
+    id || t.identifier(path.node.id.name),
   ]);
 };
 
-let convert = (path: Path, opts: {propTypesRef: Node}): Node => {
+converters.UnionTypeAnnotation = (path: Path, opts: Options) => {
+  let types = path.get('types').map(p => convert(p, opts));
+  let arr = t.arrayExpression(types);
+
+  return t.callExpression(refPropTypes(t.identifier('oneOf'), opts), [arr]);
+};
+
+function _convertImportSpecifier(path: Path, opts: Options) {
+  let kind = path.parent.importKind;
+  if (kind === 'typeof') {
+    throw path.buildCodeFrameError('import typeof is unsupported');
+  }
+
+  let file = loadImportSync(path.parentPath);
+  let local = path.node.local.name;
+  let name;
+
+  if (path.type === 'ImportDefaultSpecifier' && kind === 'value') {
+    name = 'default';
+  } else {
+    name = local;
+  }
+
+  let exported = matchExported(file, name);
+
+  if (!exported) {
+    throw path.buildCodeFrameError('Missing matching export');
+  }
+
+  return convert(exported, opts, t.identifier(name));
+}
+
+converters.ImportDefaultSpecifier = (path: Path, opts: Options) => {
+  return _convertImportSpecifier(path, opts);
+};
+
+converters.ImportSpecifier = (path: Path, opts: Options) => {
+  return _convertImportSpecifier(path, opts);
+};
+
+let convert = (path: Path, opts: {propTypesRef: Node}, id?: Node): Node => {
   let converter = converters[path.type];
 
   if (!converter) {
     throw path.buildCodeFrameError(`No converter for node type: ${path.type}`);
   }
 
-  return inheritsComments(converter(path, opts), path.node);
+  return inheritsComments(converter(path, opts, id), path.node);
 };
 
 export default function convertTypeToPropTypes(

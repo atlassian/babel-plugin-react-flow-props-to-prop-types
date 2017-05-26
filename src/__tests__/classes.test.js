@@ -1,6 +1,8 @@
+// @flow
 import pluginTester from 'babel-plugin-tester';
 import plugin from '../index';
 import stripIndent from 'strip-indent';
+import path from 'path';
 
 function stripIndents(tests) {
   return tests.map(test => {
@@ -281,6 +283,27 @@ pluginTester({
         }
       `,
     },
+    {
+      title: 'union',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            a: number | boolean
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: number | boolean
+          };
+          static propTypes = {
+            a: _PropTypes.oneOf([_PropTypes.number, _PropTypes.bool]).isRequired
+          };
+        }
+      `,
+    },
 
     // references
     {
@@ -432,4 +455,12 @@ pluginTester({
       `,
     },
   ]),
+});
+
+pluginTester({
+  plugin: plugin,
+  babelOptions: {
+    parserOpts: {plugins: ['flow']},
+  },
+  fixtures: path.join(__dirname, '..', '..', 'fixtures'),
 });
