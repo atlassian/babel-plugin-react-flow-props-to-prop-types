@@ -14,41 +14,45 @@ export default function() {
   return {
     name: 'react-flow-props-to-prop-types',
     visitor: {
-      ClassDeclaration(path: Path, state: {opts: PluginOptions}) {
-        if (!isReactComponentClass(path)) {
-          return;
-        }
+      Program(path: Path, state: {opts: PluginOptions}) {
+        path.traverse({
+          ClassDeclaration(path) {
+            if (!isReactComponentClass(path)) {
+              return;
+            }
 
-        let props = findPropsClassProperty(path.get('body'));
-        if (!props) return;
+            let props = findPropsClassProperty(path.get('body'));
+            if (!props) return;
 
-        let typeAnnotation = props.get('typeAnnotation');
-        if (!typeAnnotation.node) {
-          throw props.buildCodeFrameError(
-            'React component props must have type annotation',
-          );
-        }
+            let typeAnnotation = props.get('typeAnnotation');
+            if (!typeAnnotation.node) {
+              throw props.buildCodeFrameError(
+                'React component props must have type annotation',
+              );
+            }
 
-        let propTypesRef = path.hub.file.addImport(
-          'prop-types',
-          'default',
-          'PropTypes',
-        );
+            let propTypesRef = path.hub.file.addImport(
+              'prop-types',
+              'default',
+              'PropTypes',
+            );
 
-        let objectExpression = convertTypeToPropTypes(
-          typeAnnotation,
-          propTypesRef,
-          state.opts.resolveOpts,
-        );
+            let objectExpression = convertTypeToPropTypes(
+              typeAnnotation,
+              propTypesRef,
+              state.opts.resolveOpts,
+            );
 
-        let propTypesClassProperty = t.classProperty(
-          t.identifier('propTypes'),
-          objectExpression,
-        );
+            let propTypesClassProperty = t.classProperty(
+              t.identifier('propTypes'),
+              objectExpression,
+            );
 
-        propTypesClassProperty.static = true;
+            propTypesClassProperty.static = true;
 
-        props.insertAfter(propTypesClassProperty);
+            props.insertAfter(propTypesClassProperty);
+          },
+        });
       },
     },
   };
