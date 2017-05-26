@@ -6,11 +6,15 @@ import findPropsClassProperty from './findPropsClassProperty';
 import convertTypeToPropTypes from './convertTypeToPropTypes';
 import {log} from 'babel-log';
 
+type PluginOptions = {
+  resolveOpts?: Object,
+};
+
 export default function() {
   return {
     name: 'react-flow-props-to-prop-types',
     visitor: {
-      ClassDeclaration(path: Path) {
+      ClassDeclaration(path: Path, state: {opts: PluginOptions}) {
         if (!isReactComponentClass(path)) {
           return;
         }
@@ -34,6 +38,7 @@ export default function() {
         let objectExpression = convertTypeToPropTypes(
           typeAnnotation,
           propTypesRef,
+          state.opts.resolveOpts,
         );
 
         let propTypesClassProperty = t.classProperty(

@@ -26,6 +26,7 @@ function inheritsComments(a, b) {
 
 type Options = {
   propTypesRef: Node,
+  resolveOpts?: Object,
 };
 
 let refPropTypes = (property: Node, opts: Options): Node => {
@@ -136,7 +137,7 @@ function _convertImportSpecifier(path: Path, opts: Options) {
     throw path.buildCodeFrameError('import typeof is unsupported');
   }
 
-  let file = loadImportSync(path.parentPath);
+  let file = loadImportSync(path.parentPath, opts.resolveOpts);
   let local = path.node.local.name;
   let name;
 
@@ -176,6 +177,7 @@ let convert = (path: Path, opts: {propTypesRef: Node}, id?: Node): Node => {
 export default function convertTypeToPropTypes(
   typeAnnotation: Path,
   propTypesRef: Node,
+  resolveOpts?: Object,
 ): Node {
-  return convert(typeAnnotation, {propTypesRef}).arguments[0];
+  return convert(typeAnnotation, {propTypesRef, resolveOpts}).arguments[0];
 }

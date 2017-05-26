@@ -43,9 +43,11 @@ $ npm install react-flow-props-to-prop-types
 
 **.babelrc**
 
-```json
+```js
 {
-  "plugins": ["react-flow-props-to-prop-types"]
+  "plugins": [
+    ["react-flow-props-to-prop-types", { /* options */ }]
+  ]
 }
 ```
 
@@ -59,6 +61,14 @@ $ babel --plugins react-flow-props-to-prop-types script.js
 
 ```javascript
 require("babel-core").transform("code", {
-  plugins: ["react-flow-props-to-prop-types"]
+  plugins: [
+    ["react-flow-props-to-prop-types", { /* options */ }]
+  ]
 });
 ```
+
+## Options
+
+### `resolveOpts` (optional)
+
+Passed through to [node-resolve](https://github.com/substack/node-resolve)
