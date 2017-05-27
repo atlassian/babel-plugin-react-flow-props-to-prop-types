@@ -109,8 +109,30 @@ converters.ArrayTypeAnnotation = (path: Path, opts: Options) => {
   ]);
 };
 
+let typeParametersConverters = {
+  Array: (path: Path, opts: Options) => {
+    let param = path.get('typeParameters').get('params')[0];
+    return t.callExpression(refPropTypes(t.identifier('arrayOf'), opts), [
+      convert(param, opts),
+    ]);
+  },
+};
+
 converters.GenericTypeAnnotation = (path: Path, opts: Options) => {
-  return convert(path.get('id'), opts);
+  if (!path.node.typeParameters) {
+    return convert(path.get('id'), opts);
+  }
+
+  let name = path.node.id.name;
+
+  if (typeParametersConverters[name]) {
+    return typeParametersConverters[name](path, opts);
+  } else {
+    throw error(
+      path,
+      `Unsupported generic type annotation with type parameters`,
+    );
+  }
 };
 
 let typeIdentifierConverters = {

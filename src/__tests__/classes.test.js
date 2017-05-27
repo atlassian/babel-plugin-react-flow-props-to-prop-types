@@ -346,6 +346,27 @@ pluginTester({
         }
       `,
     },
+    {
+      title: 'Array',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            a: Array<number>
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: Array<number>
+          };
+          static propTypes = {
+            a: _PropTypes.arrayOf(_PropTypes.number).isRequired
+          };
+        }
+      `,
+    },
 
     // references
     {
