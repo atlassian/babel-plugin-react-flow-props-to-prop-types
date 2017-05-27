@@ -233,6 +233,10 @@ babel-errors@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/babel-errors/-/babel-errors-1.0.1.tgz#f042994ab44bb7fd2d310b8807422b0256d195a3"
 
+babel-errors@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/babel-errors/-/babel-errors-1.1.0.tgz#8cdd3754d750a480b8a26e0bc17f5e490926b36c"
+
 babel-explode-module@^1.2.0, babel-explode-module@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/babel-explode-module/-/babel-explode-module-1.2.1.tgz#287b5e73ea67f9891ad90d9b47750892bb26660b"

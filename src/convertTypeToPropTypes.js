@@ -4,6 +4,17 @@ import * as t from 'babel-types';
 import {log} from 'babel-log';
 import {loadImportSync} from 'babel-file-loader';
 import matchExported from './matchExported';
+import {
+  wrapErrorWithCodeFrame,
+  buildCodeFrameError,
+  toErrorStack,
+} from 'babel-errors';
+
+function error(path, message) {
+  let err = buildCodeFrameError(path, message);
+  err.stack = toErrorStack(err);
+  return err;
+}
 
 function cloneComments(comments) {
   return (
@@ -34,7 +45,7 @@ let refPropTypes = (property: Node, opts: Options): Node => {
 };
 
 let createThrows = message => (path: Path, opts: Options) => {
-  throw path.buildCodeFrameError(message);
+  throw error(path, message);
 };
 
 let createConversion = name => (path: Path, opts: Options): Node => {
@@ -105,7 +116,7 @@ converters.GenericTypeAnnotation = (path: Path, opts: Options) => {
 converters.Identifier = (path: Path, opts: Options) => {
   let binding = path.scope.getBinding(path.node.name);
   if (!binding) {
-    throw path.buildCodeFrameError('Missing reference');
+    throw error(path, `Missing reference "${path.node.name}"`);
   }
   return convert(binding.path, opts);
 };
@@ -134,7 +145,7 @@ converters.UnionTypeAnnotation = (path: Path, opts: Options) => {
 function _convertImportSpecifier(path: Path, opts: Options) {
   let kind = path.parent.importKind;
   if (kind === 'typeof') {
-    throw path.buildCodeFrameError('import typeof is unsupported');
+    throw error(path, 'import typeof is unsupported');
   }
 
   let file = loadImportSync(path.parentPath, opts.resolveOpts);
@@ -150,7 +161,7 @@ function _convertImportSpecifier(path: Path, opts: Options) {
   let exported = matchExported(file, name);
 
   if (!exported) {
-    throw path.buildCodeFrameError('Missing matching export');
+    throw error(path, 'Missing matching export');
   }
 
   return convert(exported, opts, t.identifier(name));
@@ -168,7 +179,7 @@ let convert = (path: Path, opts: {propTypesRef: Node}, id?: Node): Node => {
   let converter = converters[path.type];
 
   if (!converter) {
-    throw path.buildCodeFrameError(`No converter for node type: ${path.type}`);
+    throw error(path, `No converter for node type: ${path.type}`);
   }
 
   return inheritsComments(converter(path, opts, id), path.node);
