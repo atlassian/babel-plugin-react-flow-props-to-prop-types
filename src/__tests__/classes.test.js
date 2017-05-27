@@ -304,6 +304,48 @@ pluginTester({
         }
       `,
     },
+    {
+      title: 'Function',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            a: Function
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: Function
+          };
+          static propTypes = {
+            a: _PropTypes.func.isRequired
+          };
+        }
+      `,
+    },
+    {
+      title: 'Object',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            a: Object
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: Object
+          };
+          static propTypes = {
+            a: _PropTypes.object.isRequired
+          };
+        }
+      `,
+    },
 
     // references
     {

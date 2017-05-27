@@ -113,10 +113,21 @@ converters.GenericTypeAnnotation = (path: Path, opts: Options) => {
   return convert(path.get('id'), opts);
 };
 
+let typeIdentifierConverters = {
+  Function: createConversion('func'),
+  Object: createConversion('object'),
+};
+
 converters.Identifier = (path: Path, opts: Options) => {
-  let binding = path.scope.getBinding(path.node.name);
+  let name = path.node.name;
+
+  if (path.parentPath.isFlow() && typeIdentifierConverters[name]) {
+    return typeIdentifierConverters[name](path, opts);
+  }
+
+  let binding = path.scope.getBinding(name);
   if (!binding) {
-    throw error(path, `Missing reference "${path.node.name}"`);
+    throw error(path, `Missing reference "${name}"`);
   }
   return convert(binding.path, opts);
 };
