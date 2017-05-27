@@ -140,9 +140,9 @@ assert-plus@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/assert-plus/-/assert-plus-0.2.0.tgz#d74e1b87e7affc0db8aadb7021f3fe48101ab234"
 
-ast-pretty-print@^1.1.5:
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/ast-pretty-print/-/ast-pretty-print-1.1.5.tgz#23a1c8ff96fad9f597a9b3e59acbf42eb2ff0a19"
+ast-pretty-print@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/ast-pretty-print/-/ast-pretty-print-1.2.0.tgz#e52915ff33091db2e254a23058e503c79791aadd"
   dependencies:
     ansi-styles "^3.0.0"
 
@@ -233,13 +233,7 @@ babel-errors@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/babel-errors/-/babel-errors-1.0.1.tgz#f042994ab44bb7fd2d310b8807422b0256d195a3"
 
-babel-explode-module@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/babel-explode-module/-/babel-explode-module-1.2.0.tgz#3b3930731950cc2920d70150de721db7e041c4a9"
-  dependencies:
-    babel-types "^6.24.1"
-
-babel-explode-module@^1.2.1:
+babel-explode-module@^1.2.0, babel-explode-module@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/babel-explode-module/-/babel-explode-module-1.2.1.tgz#287b5e73ea67f9891ad90d9b47750892bb26660b"
   dependencies:
@@ -393,12 +387,12 @@ babel-jest@^20.0.3:
     babel-plugin-istanbul "^4.0.0"
     babel-preset-jest "^20.0.3"
 
-babel-log@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/babel-log/-/babel-log-1.0.1.tgz#918fa0b7668d583e313ad0ed90547c3584e2959b"
+babel-log@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/babel-log/-/babel-log-1.0.2.tgz#444da15233046285f6009451174183442fc343a3"
   dependencies:
     ansi-styles "^3.0.0"
-    ast-pretty-print "^1.1.5"
+    ast-pretty-print "^1.2.0"
 
 babel-messages@^6.23.0:
   version "6.23.0"
