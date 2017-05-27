@@ -210,6 +210,58 @@ pluginTester({
       `,
     },
     {
+      title: 'object',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            a: {
+              b: any,
+              "c": any,
+            }
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: {
+              b: any;
+              "c": any;
+            }
+          };
+          static propTypes = {
+            a: _PropTypes.shape({
+              b: _PropTypes.any.isRequired,
+              "c": _PropTypes.any.isRequired
+            }).isRequired
+          };
+        }
+      `,
+    },
+    {
+      title: 'indexers',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            [a]: any
+          };
+        }
+      `,
+      error: true,
+    },
+    {
+      title: 'call properties',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            (): any;
+          };
+        }
+      `,
+      error: true,
+    },
+    {
       title: 'array',
       code: `
         class Foo extends React.Component {
