@@ -387,9 +387,9 @@ babel-jest@^20.0.3:
     babel-plugin-istanbul "^4.0.0"
     babel-preset-jest "^20.0.3"
 
-babel-log@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/babel-log/-/babel-log-1.0.2.tgz#444da15233046285f6009451174183442fc343a3"
+babel-log@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/babel-log/-/babel-log-1.0.3.tgz#d3357272de7e8f0333815bd8566fbb5933fd3251"
   dependencies:
     ansi-styles "^3.0.0"
     ast-pretty-print "^1.2.0"
