@@ -351,7 +351,7 @@ pluginTester({
             a: number | boolean
           };
           static propTypes = {
-            a: _PropTypes.oneOf([_PropTypes.number, _PropTypes.bool]).isRequired
+            a: _PropTypes.oneOfType([_PropTypes.number, _PropTypes.bool]).isRequired
           };
         }
       `,

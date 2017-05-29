@@ -188,7 +188,7 @@ converters.UnionTypeAnnotation = (path: Path, opts: Options) => {
   let types = path.get('types').map(p => convert(p, opts));
   let arr = t.arrayExpression(types);
 
-  return t.callExpression(refPropTypes(t.identifier('oneOf'), opts), [arr]);
+  return t.callExpression(refPropTypes(t.identifier('oneOfType'), opts), [arr]);
 };
 
 function _convertImportSpecifier(path: Path, opts: Options) {
