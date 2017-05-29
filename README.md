@@ -2,9 +2,35 @@
 
 > Convert Flow React props annotation to PropTypes
 
-- Supports most Flow types
+- Supports most Flow types (see below)
 - Maintains comments
 - Works across modules (can import types)
+
+**Supported:**
+
+- `any/mixed` Unknown
+- `number / string / boolean` Primitives
+- `42 / "hello" / true` Literals
+- `[1, 2, 3]` Tuples
+- `{ prop?: number }` Objects / Object Properties / Optional properties
+- `Array<string>` Arrays
+- `Object` Unknown Objects
+- `Function` Unknown Functions
+- `boolean | string` Unions
+- `{ foo: number } & { bar: string }` Intersections
+- Referencing other types:
+  - `type Alias = number` - Type Aliases
+  - `interface Stuff {}` - Interfaces
+  - `class Thing {}` - Class Declarations
+  - `import type {Alias} from "./other";` Imports
+
+**Unsupported:**
+
+- `null` Null types
+- `void` Void/undefined types
+- `?maybe` Maybe types
+- `{ [key: string]: number }` Object indexers
+- `{ (): void }` Object call properties
 
 ## Example
 
@@ -13,6 +39,7 @@ In:
 ```js
 class MyComponent extends React.Component {
   props: {
+    // Add a class name to the root element
     className: string
   };
 
@@ -25,9 +52,11 @@ Out:
 ```js
 class MyComponent extends React.Component {
   props: {
+    // Add a class name to the root element
     className: string
   };
   static propTypes = {
+    // Add a class name to the root element
     className: PropTypes.string.isRequired
   };
 
@@ -38,8 +67,12 @@ class MyComponent extends React.Component {
 ## Installation
 
 ```sh
-$ npm install react-flow-props-to-prop-types
+$ yarn add prop-types prop-types-extra
+$ yarn add --dev babel-plugin-react-flow-props-to-prop-types
 ```
+
+> **Note:** [`prop-types-extra`](https://github.com/react-bootstrap/prop-types-extra)
+> is necessary for intersection type support.
 
 ## Usage
 

@@ -36,12 +36,13 @@ function inheritsComments(a, b) {
 }
 
 type Options = {
-  propTypesRef: Node,
+  getPropTypesRef: () => Node,
+  getPropTypesAllRef: () => Node,
   resolveOpts?: Object,
 };
 
 let refPropTypes = (property: Node, opts: Options): Node => {
-  return t.memberExpression(opts.propTypesRef, property);
+  return t.memberExpression(opts.getPropTypesRef(), property);
 };
 
 let createThrows = message => (path: Path, opts: Options) => {
@@ -191,6 +192,15 @@ converters.UnionTypeAnnotation = (path: Path, opts: Options) => {
   return t.callExpression(refPropTypes(t.identifier('oneOfType'), opts), [arr]);
 };
 
+converters.IntersectionTypeAnnotation = (path: Path, opts: Options) => {
+  return t.callExpression(
+    opts.getPropTypesAllRef(),
+    path.get('types').map(type => {
+      return convert(type, opts);
+    }),
+  );
+};
+
 function _convertImportSpecifier(path: Path, opts: Options) {
   let kind = path.parent.importKind;
   if (kind === 'typeof') {
@@ -224,7 +234,7 @@ converters.ImportSpecifier = (path: Path, opts: Options) => {
   return _convertImportSpecifier(path, opts);
 };
 
-let convert = (path: Path, opts: {propTypesRef: Node}, id?: Node): Node => {
+let convert = (path: Path, opts: Options, id?: Node): Node => {
   let converter = converters[path.type];
 
   if (!converter) {
@@ -236,8 +246,7 @@ let convert = (path: Path, opts: {propTypesRef: Node}, id?: Node): Node => {
 
 export default function convertTypeToPropTypes(
   typeAnnotation: Path,
-  propTypesRef: Node,
-  resolveOpts?: Object,
+  opts: Options,
 ): Node {
-  return convert(typeAnnotation, {propTypesRef, resolveOpts}).arguments[0];
+  return convert(typeAnnotation, opts).arguments[0];
 }

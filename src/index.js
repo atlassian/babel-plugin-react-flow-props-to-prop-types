@@ -31,17 +31,36 @@ export default function() {
               );
             }
 
-            let propTypesRef = path.hub.file.addImport(
-              'prop-types',
-              'default',
-              'PropTypes',
-            );
+            let propTypesRef;
+            let propTypesAllRef;
 
-            let objectExpression = convertTypeToPropTypes(
-              typeAnnotation,
-              propTypesRef,
-              state.opts.resolveOpts,
-            );
+            function getPropTypesRef() {
+              if (!propTypesRef) {
+                propTypesRef = path.hub.file.addImport(
+                  'prop-types',
+                  'default',
+                  'PropTypes',
+                );
+              }
+              return propTypesRef;
+            }
+
+            function getPropTypesAllRef() {
+              if (!propTypesAllRef) {
+                propTypesAllRef = path.hub.file.addImport(
+                  'prop-types-extra/lib/all',
+                  'default',
+                  'all',
+                );
+              }
+              return propTypesAllRef;
+            }
+
+            let objectExpression = convertTypeToPropTypes(typeAnnotation, {
+              getPropTypesRef,
+              getPropTypesAllRef,
+              resolveOpts: state.opts.resolveOpts,
+            });
 
             let propTypesClassProperty = t.classProperty(
               t.identifier('propTypes'),

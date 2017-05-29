@@ -357,6 +357,28 @@ pluginTester({
       `,
     },
     {
+      title: 'intersection',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            a: number & boolean
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        import _all from "prop-types-extra/lib/all";
+        class Foo extends React.Component {
+          props: {
+            a: number & boolean
+          };
+          static propTypes = {
+            a: _all(_PropTypes.number, _PropTypes.bool).isRequired
+          };
+        }
+      `,
+    },
+    {
       title: 'Function',
       code: `
         class Foo extends React.Component {
