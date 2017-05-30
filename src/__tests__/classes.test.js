@@ -244,11 +244,25 @@ pluginTester({
       code: `
         class Foo extends React.Component {
           props: {
-            [a]: any
+            a: {
+              [a: string]: any
+            }
           };
         }
       `,
-      error: true,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: {
+              [a: string]: any
+            }
+          };
+          static propTypes = {
+            a: _PropTypes.objectOf(_PropTypes.any).isRequired
+          };
+        }
+      `,
     },
     {
       title: 'call properties',

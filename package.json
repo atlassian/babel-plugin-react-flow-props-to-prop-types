@@ -45,8 +45,8 @@
   "dependencies": {
     "babel-errors": "^1.1.0",
     "babel-explode-module": "^1.2.1",
-    "babel-file-loader": "^1.0.0",
-    "babel-helper-simplify-module": "^2.1.0",
+    "babel-file-loader": "^1.0.1",
+    "babel-helper-simplify-module": "^2.1.1",
     "babel-log": "^1.0.3",
     "babel-react-components": "^1.0.1",
     "babel-types": "^6.24.1"

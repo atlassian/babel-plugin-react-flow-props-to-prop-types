@@ -12,7 +12,11 @@
 - `number / string / boolean` Primitives
 - `42 / "hello" / true` Literals
 - `[1, 2, 3]` Tuples
-- `{ prop?: number }` Objects / Object Properties / Optional properties
+- `{ ... }` Objects
+  - `{ prop: number }` Object Properties
+  - `{ prop?: number }` Optional properties
+  - `{ [prop: string]: number }` Optional Indexers
+- `{ [key: string]: number }` Object indexers
 - `Array<string>` Arrays
 - `Object` Unknown Objects
 - `Function` Unknown Functions
@@ -29,7 +33,8 @@
 - `null` Null types
 - `void` Void/undefined types
 - `?maybe` Maybe types
-- `{ [key: string]: number }` Object indexers
+- `{ a: number, [b: string]: number }` Combining properties and indexers
+- `{ [a: string]: number, [b: string]: number }` Multiple indexers
 - `{ (): void }` Object call properties
 
 ## Example

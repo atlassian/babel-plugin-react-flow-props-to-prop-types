@@ -78,26 +78,44 @@ converters.TypeAnnotation = (path: Path, opts: Options) => {
 };
 
 converters.ObjectTypeAnnotation = (path: Path, opts: Options) => {
-  let properties = [];
+  let {properties, indexers, callProperties} = path.node;
 
-  for (let property of path.get('properties')) {
-    properties.push(convert(property, opts));
+  if (properties.length && indexers.length) {
+    throw error(
+      path,
+      'Objects with both properties and indexers are unsupported',
+    );
   }
 
-  if (path.node.indexers.length) {
-    throw error(path.get('indexers')[0], 'Object indexers are unsupported');
+  if (!properties.length && indexers.length > 1) {
+    throw error(path, 'Objects with multiple indexers are unsupported');
   }
 
-  if (path.node.callProperties.length) {
+  if (callProperties.length) {
     throw error(
       path.get('callProperties')[0],
       'Object call properties are unsupported',
     );
   }
 
-  let object = t.objectExpression(properties);
+  if (indexers.length) {
+    let indexer = path.get('indexers')[0];
+    return t.callExpression(refPropTypes(t.identifier('objectOf'), opts), [
+      convert(indexer, opts),
+    ]);
+  } else {
+    let props = [];
 
-  return t.callExpression(refPropTypes(t.identifier('shape'), opts), [object]);
+    for (let property of path.get('properties')) {
+      props.push(convert(property, opts));
+    }
+
+    let object = t.objectExpression(props);
+
+    return t.callExpression(refPropTypes(t.identifier('shape'), opts), [
+      object,
+    ]);
+  }
 };
 
 converters.ObjectTypeProperty = (path: Path, opts: Options) => {
@@ -118,6 +136,10 @@ converters.ObjectTypeProperty = (path: Path, opts: Options) => {
   }
 
   return t.objectProperty(inheritsComments(id, key.node), converted);
+};
+
+converters.ObjectTypeIndexer = (path: Path, opts: Options) => {
+  return convert(path.get('value'), opts);
 };
 
 converters.ArrayTypeAnnotation = (path: Path, opts: Options) => {

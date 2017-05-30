@@ -22,6 +22,12 @@ export default function matchExported(file: Object, exportName: string) {
     return null;
   }
 
+  let local = match.local;
+
+  if (!local) {
+    return null;
+  }
+
   let statement = file.path.get('body').find(item => {
     if (!item.isDeclaration()) return false;
 
@@ -39,7 +45,7 @@ export default function matchExported(file: Object, exportName: string) {
       throw new Error(`Couldn't find id on node:\n\n${format(item)}`);
     }
 
-    return id.name === match.local;
+    return id.name === local;
   });
 
   return statement || null;
