@@ -35,6 +35,30 @@ function inheritsComments(a, b) {
   });
 }
 
+function isLiteralTypeAnnotation(node) {
+  return (
+    t.isStringLiteralTypeAnnotation(node) ||
+    t.isBooleanLiteralTypeAnnotation(node) ||
+    t.isNumericLiteralTypeAnnotation(node) ||
+    t.isVoidTypeAnnotation(node) ||
+    t.isNullLiteralTypeAnnotation(node)
+  );
+}
+
+function typeToValue(node) {
+  let value;
+
+  if (t.isVoidTypeAnnotation(node)) {
+    value = undefined;
+  } else if (t.isNullLiteralTypeAnnotation(node)) {
+    value = null;
+  } else {
+    value = node.value;
+  }
+
+  return t.valueToNode(value);
+}
+
 type Options = {
   getPropTypesRef: () => Node,
   getPropTypesAllRef: () => Node,
@@ -53,21 +77,33 @@ let createConversion = name => (path: Path, opts: Options): Node => {
   return refPropTypes(t.identifier(name), opts);
 };
 
+let convertLiteral = (path: Path, opts: Options): Node => {
+  let arr = t.arrayExpression([typeToValue(path.node)]);
+  return t.callExpression(refPropTypes(t.identifier('oneOf'), opts), [arr]);
+};
+
 let converters = {};
 
 converters.AnyTypeAnnotation = createConversion('any');
 converters.MixedTypeAnnotation = createConversion('any');
 converters.NumberTypeAnnotation = createConversion('number');
-converters.NumericLiteralTypeAnnotation = createConversion('number');
+converters.NumericLiteralTypeAnnotation = convertLiteral;
 converters.BooleanTypeAnnotation = createConversion('bool');
-converters.BooleanLiteralTypeAnnotation = createConversion('bool');
+converters.BooleanLiteralTypeAnnotation = convertLiteral;
 converters.StringTypeAnnotation = createConversion('string');
-converters.StringLiteralTypeAnnotation = createConversion('string');
-converters.NullLiteralTypeAnnotation = createThrows('null types unsupported');
-converters.VoidTypeAnnotation = createThrows('void types unsupported');
+converters.StringLiteralTypeAnnotation = convertLiteral;
+converters.NullLiteralTypeAnnotation = convertLiteral;
+converters.VoidTypeAnnotation = convertLiteral;
 converters.FunctionTypeAnnotation = createConversion('func');
-converters.NullableTypeAnnotation = createThrows('maybe types unsupported');
 converters.TupleTypeAnnotation = createConversion('array');
+
+converters.NullableTypeAnnotation = (path: Path, opts: Options) => {
+  return t.callExpression(refPropTypes(t.identifier('oneOf'), opts), [
+    t.valueToNode(null),
+    t.valueToNode(undefined),
+    convert(path.get('typeAnnotation'), opts),
+  ]);
+};
 
 converters.QualifiedTypeIdentifier = createThrows(
   'qualified type identifiers unsupported',
@@ -208,10 +244,20 @@ converters.ClassDeclaration = (path: Path, opts: Options, id?: Node) => {
 };
 
 converters.UnionTypeAnnotation = (path: Path, opts: Options) => {
-  let types = path.get('types').map(p => convert(p, opts));
-  let arr = t.arrayExpression(types);
+  let isLiterals = path.node.types.every(isLiteralTypeAnnotation);
+  let propType;
+  let elements;
 
-  return t.callExpression(refPropTypes(t.identifier('oneOfType'), opts), [arr]);
+  if (isLiterals) {
+    propType = 'oneOf';
+    elements = path.get('types').map(p => typeToValue(p.node));
+  } else {
+    propType = 'oneOfType';
+    elements = path.get('types').map(p => convert(p, opts));
+  }
+
+  let arr = t.arrayExpression(elements);
+  return t.callExpression(refPropTypes(t.identifier(propType), opts), [arr]);
 };
 
 converters.IntersectionTypeAnnotation = (path: Path, opts: Options) => {

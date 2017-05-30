@@ -8,7 +8,8 @@
 
 **Supported:**
 
-- `any/mixed` Unknown
+- `any/mixed` Unknown types
+- `void/null` Empty types
 - `number / string / boolean` Primitives
 - `42 / "hello" / true` Literals
 - `[1, 2, 3]` Tuples
@@ -26,16 +27,15 @@
   - `type Alias = number` - Type Aliases
   - `interface Stuff {}` - Interfaces
   - `class Thing {}` - Class Declarations
-  - `import type {Alias} from "./other";` Imports
+  - `import type {Alias} from "./other";` Type imports
 
 **Unsupported:**
 
-- `null` Null types
-- `void` Void/undefined types
-- `?maybe` Maybe types
 - `{ a: number, [b: string]: number }` Combining properties and indexers
 - `{ [a: string]: number, [b: string]: number }` Multiple indexers
 - `{ (): void }` Object call properties
+- `a.b` Qualified type identifiers
+- `import typeof Export from "./other";` Typeof imports
 
 ## Example
 

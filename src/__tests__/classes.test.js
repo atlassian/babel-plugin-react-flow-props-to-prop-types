@@ -133,7 +133,17 @@ pluginTester({
           };
         }
       `,
-      error: true,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: null
+          };
+          static propTypes = {
+            a: _PropTypes.oneOf([null]).isRequired
+          };
+        }
+      `,
     },
     {
       title: 'void',
@@ -144,7 +154,17 @@ pluginTester({
           };
         }
       `,
-      error: true,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: void
+          };
+          static propTypes = {
+            a: _PropTypes.oneOf([undefined]).isRequired
+          };
+        }
+      `,
     },
     {
       title: 'number literal',
@@ -162,7 +182,7 @@ pluginTester({
             a: 1
           };
           static propTypes = {
-            a: _PropTypes.number.isRequired
+            a: _PropTypes.oneOf([1]).isRequired
           };
         }
       `,
@@ -183,7 +203,7 @@ pluginTester({
             a: true
           };
           static propTypes = {
-            a: _PropTypes.bool.isRequired
+            a: _PropTypes.oneOf([true]).isRequired
           };
         }
       `,
@@ -204,7 +224,7 @@ pluginTester({
             a: "three"
           };
           static propTypes = {
-            a: _PropTypes.string.isRequired
+            a: _PropTypes.oneOf(["three"]).isRequired
           };
         }
       `,
@@ -326,7 +346,17 @@ pluginTester({
           };
         }
       `,
-      error: true,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: ?boolean
+          };
+          static propTypes = {
+            a: _PropTypes.oneOf(null, undefined, _PropTypes.bool).isRequired
+          };
+        }
+      `,
     },
     {
       title: 'tuple',
@@ -366,6 +396,27 @@ pluginTester({
           };
           static propTypes = {
             a: _PropTypes.oneOfType([_PropTypes.number, _PropTypes.bool]).isRequired
+          };
+        }
+      `,
+    },
+    {
+      title: 'union literals',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            a: 1 | true | "three" | null | void
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from \"prop-types\";
+        class Foo extends React.Component {
+          props: {
+            a: 1 | true | \"three\" | null | void
+          };
+          static propTypes = {
+            a: _PropTypes.oneOf([1, true, \"three\", null, undefined]).isRequired
           };
         }
       `,
