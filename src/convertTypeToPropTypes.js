@@ -5,6 +5,7 @@ import {log} from 'babel-log';
 import {loadImportSync} from 'babel-file-loader';
 import matchExported from './matchExported';
 import error from './error';
+import {findFlowBinding} from 'babel-flow-scope';
 
 function cloneComments(comments) {
   return (
@@ -212,11 +213,25 @@ converters.Identifier = (path: Path, opts: Options) => {
     return typeIdentifierConverters[name](path, opts);
   }
 
-  let binding = path.scope.getBinding(name);
+  let binding = findFlowBinding(path, name);
+
   if (!binding) {
     throw error(path, `Missing reference "${name}"`);
   }
-  return convert(binding.path, opts);
+
+  let bindingPath;
+
+  if (binding.kind === 'declaration') {
+    bindingPath = binding.path.parentPath;
+  } else if (binding.kind === 'import') {
+    bindingPath = binding.path.parentPath;
+  } else if (binding.kind === 'param') {
+    throw binding.path.buildCodeFrameError('Cannot convert type parameters');
+  } else {
+    throw new Error(`Unexpected Flow binding kind: ${binding.kind}`);
+  }
+
+  return convert(bindingPath, opts);
 };
 
 converters.TypeAlias = (path: Path, opts: Options) => {
