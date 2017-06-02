@@ -6,6 +6,9 @@
   "author": "James Kyle <me@thejameskyle.com>",
   "license": "MIT",
   "repository": "thejameskyle/babel-plugin-react-flow-props-to-prop-types",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "precommit": "lint-staged --verbose",
     "prepublish": "yarn build",
