@@ -3,6 +3,7 @@ import explodeModule from 'babel-explode-module';
 import {explodedToStatements} from 'babel-helper-simplify-module';
 import {format} from 'babel-log';
 import * as t from 'babel-types';
+import error from './error';
 
 export default function matchExported(file: Object, exportName: string) {
   let exploded = explodeModule(file.path.node);
@@ -35,10 +36,12 @@ export default function matchExported(file: Object, exportName: string) {
 
     if (item.isVariableDeclaration()) {
       id = item.node.declarations[0].id;
+    } else if (item.isImportDeclaration()) {
+      id = item.node.specifiers[0].local;
     } else if (item.node.id) {
       id = item.node.id;
     } else {
-      throw new Error(`Unexpected node:\n\n${format(item)}`);
+      throw error(item, `Unexpected node:\n\n${format(item)}`);
     }
 
     if (!id) {

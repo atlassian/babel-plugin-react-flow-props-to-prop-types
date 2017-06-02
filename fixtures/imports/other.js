@@ -1,5 +1,2 @@
-export class a {}
-
-class _b {}
-
-export {_b as b};
+import type c from './another';
+export type b = c;

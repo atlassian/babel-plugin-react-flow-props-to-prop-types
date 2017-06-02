@@ -4,17 +4,7 @@ import * as t from 'babel-types';
 import {log} from 'babel-log';
 import {loadImportSync} from 'babel-file-loader';
 import matchExported from './matchExported';
-import {
-  wrapErrorWithCodeFrame,
-  buildCodeFrameError,
-  toErrorStack,
-} from 'babel-errors';
-
-function error(path, message) {
-  let err = buildCodeFrameError(path, message);
-  err.stack = toErrorStack(err);
-  return err;
-}
+import error from './error';
 
 function cloneComments(comments) {
   return (
