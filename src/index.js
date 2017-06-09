@@ -25,13 +25,6 @@ export default function() {
             const contextTypes = findContextTypesClassProperty(body);
             if (!props && !contextTypes) return;
 
-            const propsTypeAnnotation = props.get('typeAnnotation');
-            if (!propsTypeAnnotation.node) {
-              throw props.buildCodeFrameError(
-                'React component props must have type annotation',
-              );
-            }
-
             let propTypesRef;
             let propTypesAllRef;
 
@@ -72,18 +65,27 @@ export default function() {
               contextTypes.insertAfter(contextTypesClassProperty);
             }
 
-            const propTypesClassProperty = t.classProperty(
-              t.identifier('propTypes'),
-              convertTypeToPropTypes(propsTypeAnnotation, {
-                getPropTypesRef,
-                getPropTypesAllRef,
-                resolveOpts: state.opts.resolveOpts,
-              }),
-            );
+            if(props) {
+              const propsTypeAnnotation = props.get('typeAnnotation');
+              if (!propsTypeAnnotation.node) {
+                throw props.buildCodeFrameError(
+                  'React component props must have type annotation',
+                );
+              }
 
-            propTypesClassProperty.static = true;
+              const propTypesClassProperty = t.classProperty(
+                t.identifier('propTypes'),
+                convertTypeToPropTypes(propsTypeAnnotation, {
+                  getPropTypesRef,
+                  getPropTypesAllRef,
+                  resolveOpts: state.opts.resolveOpts,
+                }),
+              );
 
-            props.insertAfter(propTypesClassProperty);
+              propTypesClassProperty.static = true;
+
+              props.insertAfter(propTypesClassProperty);
+            }
           },
         });
       },
