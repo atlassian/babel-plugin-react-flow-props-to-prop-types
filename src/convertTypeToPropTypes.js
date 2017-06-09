@@ -134,7 +134,16 @@ converters.ObjectTypeAnnotation = (path: Path, opts: Options) => {
     let props = [];
 
     for (let property of path.get('properties')) {
-      props.push(convert(property, opts));
+      // result may be from:
+      //  ObjectTypeProperty - objectProperty
+      //  ObjectTypeSpreadProperty - Array<objectProperty>
+      const converted = convert(property, opts);
+      if (Array.isArray(converted)){
+        converted.forEach((prop) => props.push(prop));
+      }
+      else {
+        props.push(converted);
+      }
     }
 
     let object = t.objectExpression(props);
@@ -163,6 +172,36 @@ converters.ObjectTypeProperty = (path: Path, opts: Options) => {
   }
 
   return t.objectProperty(inheritsComments(id, key.node), converted);
+};
+
+converters.ObjectTypeSpreadProperty = (path: Path, opts: Options) => {
+  //let key = path.get('key');
+  //let value = path.get('value');
+
+  let argument = path.get('argument')
+  let typeParameters = path.get('typeParameters')
+
+  const exact = false; //isExact(argument);
+  let subnode;
+  if(exact) {
+    subnode = node.argument.typeParameters.params[0];
+  }
+  else {
+    subnode = argument;
+  }
+
+  let converted = convert(subnode, opts);
+  const properties = converted.arguments[0].properties;
+
+  // Unless or until the strange default behavior changes in flow (https://github.com/facebook/flow/issues/3214)
+  // every property from spread becomes optional unless it uses `...$Exact<T>`
+
+  // @see also explanation of behavior - https://github.com/facebook/flow/issues/3534#issuecomment-287580240
+  // @returns flattened properties from shape
+  //if(!exact) {
+  //  properties.forEach((prop) => prop.value.isRequired = false);
+  //}
+  debugger;return properties;
 };
 
 converters.ObjectTypeIndexer = (path: Path, opts: Options) => {
