@@ -31,6 +31,7 @@
     "flow-coverage-report": "^0.3.0",
     "husky": "^0.13.4",
     "jest": "^20.0.4",
+    "jest-environment-node-debug": "^2.0.0",
     "lint-staged": "^3.6.0",
     "prettier": "^1.4.4",
     "strip-indent": "^2.0.0"
