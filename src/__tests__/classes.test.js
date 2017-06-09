@@ -757,6 +757,47 @@ pluginTester({
         }
       `,
     },
+
+    // context types
+    {
+      title: 'context types',
+      code: `
+        class Foo extends React.Component {
+          contextTypes: {
+            a: {
+              b: any,
+              "c": any,
+            }
+          }
+          props: {
+            a: number
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          contextTypes: {
+            a: {
+              b: any;
+              "c": any;
+            }
+          };
+          static contextTypes = {
+            a: _PropTypes.shape({
+              b: _PropTypes.any.isRequired,
+              "c": _PropTypes.any.isRequired
+            }).isRequired
+          };
+          props: {
+            a: number
+          };
+          static propTypes = {
+            a: _PropTypes.number.isRequired
+          };
+        }
+      `,
+    },
   ]),
 });
 

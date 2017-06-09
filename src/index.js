@@ -2,7 +2,7 @@
 import type {Node, Path} from './types';
 import * as t from 'babel-types';
 import {isReactComponentClass} from 'babel-react-components';
-import findPropsClassProperty from './findPropsClassProperty';
+import {findContextTypesClassProperty, findPropsClassProperty} from './finders';
 import convertTypeToPropTypes from './convertTypeToPropTypes';
 
 type PluginOptions = {
@@ -20,11 +20,13 @@ export default function() {
               return;
             }
 
-            let props = findPropsClassProperty(path.get('body'));
-            if (!props) return;
+            const body = path.get('body');
+            const props = findPropsClassProperty(body);
+            const contextTypes = findContextTypesClassProperty(body);
+            if (!props && !contextTypes) return;
 
-            let typeAnnotation = props.get('typeAnnotation');
-            if (!typeAnnotation.node) {
+            const propsTypeAnnotation = props.get('typeAnnotation');
+            if (!propsTypeAnnotation.node) {
               throw props.buildCodeFrameError(
                 'React component props must have type annotation',
               );
@@ -55,15 +57,28 @@ export default function() {
               return propTypesAllRef;
             }
 
-            let objectExpression = convertTypeToPropTypes(typeAnnotation, {
-              getPropTypesRef,
-              getPropTypesAllRef,
-              resolveOpts: state.opts.resolveOpts,
-            });
+            if(contextTypes) {
+              const contextTypesClassProperty = t.classProperty(
+                t.identifier('contextTypes'),
+                convertTypeToPropTypes(contextTypes.get('typeAnnotation'), {
+                  getPropTypesRef,
+                  getPropTypesAllRef,
+                  resolveOpts: state.opts.resolveOpts,
+                }),
+              );
 
-            let propTypesClassProperty = t.classProperty(
+              contextTypesClassProperty.static = true;
+
+              contextTypes.insertAfter(contextTypesClassProperty);
+            }
+
+            const propTypesClassProperty = t.classProperty(
               t.identifier('propTypes'),
-              objectExpression,
+              convertTypeToPropTypes(propsTypeAnnotation, {
+                getPropTypesRef,
+                getPropTypesAllRef,
+                resolveOpts: state.opts.resolveOpts,
+              }),
             );
 
             propTypesClassProperty.static = true;
