@@ -139,7 +139,9 @@ converters.ObjectTypeAnnotation = (path: Path, opts: Options) => {
       //  ObjectTypeSpreadProperty - Array<objectProperty>
       const converted = convert(property, opts);
       if (Array.isArray(converted)){
-        converted.forEach((prop) => props.push(prop));
+        converted.forEach((prop) => {
+          props.push(prop)
+        });
       }
       else {
         props.push(converted);
@@ -201,7 +203,7 @@ converters.ObjectTypeSpreadProperty = (path: Path, opts: Options) => {
   //if(!exact) {
   //  properties.forEach((prop) => prop.value.isRequired = false);
   //}
-  debugger;return properties;
+  return properties;
 };
 
 converters.ObjectTypeIndexer = (path: Path, opts: Options) => {
