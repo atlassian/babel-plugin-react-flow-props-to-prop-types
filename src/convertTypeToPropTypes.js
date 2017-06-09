@@ -64,10 +64,15 @@ function typeToValue(node) {
   return t.valueToNode(value);
 }
 
+function isExact(path: Path) {
+  return path.node.id.name === '$Exact' && path.node.type === 'GenericTypeAnnotation';
+}
+
 type Options = {
   getPropTypesRef: () => Node,
   getPropTypesAllRef: () => Node,
   resolveOpts?: Object,
+  nonExactSpread?: boolean,
 };
 
 let refPropTypes = (property: Node, opts: Options): Node => {
@@ -219,7 +224,7 @@ converters.ObjectTypeProperty = (
 
   let converted = convert(value, opts, context);
 
-  if (!path.node.optional && !converted[OPTIONAL]) {
+  if (!path.node.optional && !converted[OPTIONAL] && !opts.nonExactSpread) {
     converted = t.memberExpression(converted, t.identifier('isRequired'));
   }
 
@@ -227,33 +232,15 @@ converters.ObjectTypeProperty = (
 };
 
 converters.ObjectTypeSpreadProperty = (path: Path, opts: Options) => {
-  //let key = path.get('key');
-  //let value = path.get('value');
-
-  let argument = path.get('argument')
-  let typeParameters = path.get('typeParameters')
-
-  const exact = false; //isExact(argument);
-  let subnode;
-  if(exact) {
-    subnode = node.argument.typeParameters.params[0];
-  }
-  else {
-    subnode = argument;
-  }
-
-  let converted = convert(subnode, opts);
-  const properties = converted.arguments[0].properties;
+  const argument = path.get('argument')
 
   // Unless or until the strange default behavior changes in flow (https://github.com/facebook/flow/issues/3214)
   // every property from spread becomes optional unless it uses `...$Exact<T>`
-
   // @see also explanation of behavior - https://github.com/facebook/flow/issues/3534#issuecomment-287580240
+  const converted = convert(argument, {...opts, nonExactSpread: !isExact(argument)});
+
   // @returns flattened properties from shape
-  //if(!exact) {
-  //  properties.forEach((prop) => prop.value.isRequired = false);
-  //}
-  return properties;
+  return converted.arguments[0].properties;
 };
 
 converters.ObjectTypeIndexer = (
@@ -280,6 +267,10 @@ let typeParametersConverters = {
     return t.callExpression(refPropTypes(t.identifier('arrayOf'), opts), [
       convert(param, opts, context),
     ]);
+  },
+  '$Exact': (path: Path, opts: Options) => {
+    let param = path.get('typeParameters').get('params')[0];
+    return convert(param, opts);
   },
 };
 

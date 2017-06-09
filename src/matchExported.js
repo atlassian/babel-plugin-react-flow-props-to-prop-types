@@ -1,7 +1,7 @@
 // @flow
 import {explodeModule} from 'babel-explode-module';
 import {explodedToStatements} from 'babel-helper-simplify-module';
-import {format} from 'babel-log';
+import format from 'babel-log';
 import * as t from 'babel-types';
 import error from './error';
 
@@ -41,11 +41,11 @@ export default function matchExported(file: Object, exportName: string) {
     } else if (item.node.id) {
       id = item.node.id;
     } else {
-      throw error(item, `Unexpected node:\n\n${format(item)}`);
+      throw error(item, `Unexpected node:\n\n${String(format(item))}`);
     }
 
     if (!id) {
-      throw new Error(`Couldn't find id on node:\n\n${format(item)}`);
+      throw new Error(`Couldn't find id on node:\n\n${String(format(item))}`);
     }
 
     return id.name === local;

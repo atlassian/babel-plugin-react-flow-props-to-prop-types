@@ -4,7 +4,6 @@ import * as t from 'babel-types';
 import {isReactComponentClass} from 'babel-react-components';
 import findPropsClassProperty from './findPropsClassProperty';
 import convertTypeToPropTypes from './convertTypeToPropTypes';
-import {log} from 'babel-log';
 
 type PluginOptions = {
   resolveOpts?: Object,
