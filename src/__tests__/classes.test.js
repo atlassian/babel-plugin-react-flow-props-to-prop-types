@@ -49,12 +49,50 @@ pluginTester({
           static propTypes = {
             a: _PropTypes.shape({
               b: _PropTypes.any.isRequired,
+              c: _PropTypes.any
+            }).isRequired
+          };
+        }
+      `,
+    },
+
+    {
+      title: 'object type spread exact',
+      code: `
+        type C = {
+          c: any
+        };
+        class Foo extends React.Component {
+          props: {
+            a: {
+              b: any,
+              ...$Exact<C>
+            }
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        type C = {
+          c: any
+        };
+        class Foo extends React.Component {
+          props: {
+            a: {
+              b: any;
+              ...$Exact<C>;
+            }
+          };
+          static propTypes = {
+            a: _PropTypes.shape({
+              b: _PropTypes.any.isRequired,
               c: _PropTypes.any.isRequired
             }).isRequired
           };
         }
       `,
     },
+
     {
       title: 'any',
       code: `

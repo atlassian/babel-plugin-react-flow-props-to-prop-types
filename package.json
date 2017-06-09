@@ -27,6 +27,7 @@
     "babel-plugin-tester": "^3.0.0",
     "babel-preset-env": "^1.5.2",
     "babel-preset-flow": "^6.23.0",
+    "babel-preset-stage-2": "^6.24.1",
     "flow-bin": "^0.47.0",
     "flow-coverage-report": "^0.3.0",
     "husky": "^0.13.4",

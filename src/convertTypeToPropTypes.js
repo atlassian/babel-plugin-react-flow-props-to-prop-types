@@ -1,7 +1,6 @@
 // @flow
 import type {Path, Node} from './types';
 import * as t from 'babel-types';
-import {log} from 'babel-log';
 import {loadImportSync} from 'babel-file-loader';
 import matchExported from './matchExported';
 import error from './error';
@@ -50,10 +49,15 @@ function typeToValue(node) {
   return t.valueToNode(value);
 }
 
+function isExact(path: Path) {
+  return path.node.id.name === '$Exact' && path.node.type === 'GenericTypeAnnotation';
+}
+
 type Options = {
   getPropTypesRef: () => Node,
   getPropTypesAllRef: () => Node,
   resolveOpts?: Object,
+  nonExactSpread?: boolean,
 };
 
 let refPropTypes = (property: Node, opts: Options): Node => {
@@ -169,7 +173,7 @@ converters.ObjectTypeProperty = (path: Path, opts: Options) => {
 
   let converted = convert(value, opts);
 
-  if (!path.node.optional) {
+  if (!path.node.optional && !opts.nonExactSpread) {
     converted = t.memberExpression(converted, t.identifier('isRequired'));
   }
 
@@ -177,33 +181,15 @@ converters.ObjectTypeProperty = (path: Path, opts: Options) => {
 };
 
 converters.ObjectTypeSpreadProperty = (path: Path, opts: Options) => {
-  //let key = path.get('key');
-  //let value = path.get('value');
-
-  let argument = path.get('argument')
-  let typeParameters = path.get('typeParameters')
-
-  const exact = false; //isExact(argument);
-  let subnode;
-  if(exact) {
-    subnode = node.argument.typeParameters.params[0];
-  }
-  else {
-    subnode = argument;
-  }
-
-  let converted = convert(subnode, opts);
-  const properties = converted.arguments[0].properties;
+  const argument = path.get('argument')
 
   // Unless or until the strange default behavior changes in flow (https://github.com/facebook/flow/issues/3214)
   // every property from spread becomes optional unless it uses `...$Exact<T>`
-
   // @see also explanation of behavior - https://github.com/facebook/flow/issues/3534#issuecomment-287580240
+  const converted = convert(argument, {...opts, nonExactSpread: !isExact(argument)});
+
   // @returns flattened properties from shape
-  //if(!exact) {
-  //  properties.forEach((prop) => prop.value.isRequired = false);
-  //}
-  return properties;
+  return converted.arguments[0].properties;
 };
 
 converters.ObjectTypeIndexer = (path: Path, opts: Options) => {
@@ -223,6 +209,10 @@ let typeParametersConverters = {
       convert(param, opts),
     ]);
   },
+  '$Exact': (path: Path, opts: Options) => {
+    let param = path.get('typeParameters').get('params')[0];
+    return convert(param, opts);
+  },
 };
 
 converters.GenericTypeAnnotation = (path: Path, opts: Options) => {
@@ -235,9 +225,9 @@ converters.GenericTypeAnnotation = (path: Path, opts: Options) => {
   if (typeParametersConverters[name]) {
     return typeParametersConverters[name](path, opts);
   } else {
-    throw error(
+    debugger;throw error(
       path,
-      `Unsupported generic type annotation with type parameters`,
+      `Unsupported generic type annotation ${name} with type parameters`,
     );
   }
 };
