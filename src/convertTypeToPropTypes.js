@@ -87,6 +87,7 @@ converters.NullLiteralTypeAnnotation = convertLiteral;
 converters.VoidTypeAnnotation = convertLiteral;
 converters.FunctionTypeAnnotation = createConversion('func');
 converters.TupleTypeAnnotation = createConversion('array');
+converters.ReactElement = createConversion('element');
 
 converters.NullableTypeAnnotation = (path: Path, opts: Options) => {
   return t.callExpression(refPropTypes(t.identifier('oneOf'), opts), [
@@ -181,6 +182,10 @@ let typeParametersConverters = {
     return t.callExpression(refPropTypes(t.identifier('arrayOf'), opts), [
       convert(param, opts),
     ]);
+  },
+  React$Element: (path: Path, opts: Options) => {
+    // ignore the parameters - the prop-types element won't accept them
+    return converters.ReactElement;
   },
 };
 
