@@ -226,7 +226,7 @@ converters.GenericTypeAnnotation = (path: Path, opts: Options) => {
   if (typeParametersConverters[name]) {
     return typeParametersConverters[name](path, opts);
   } else {
-    debugger;throw error(
+    throw error(
       path,
       `Unsupported generic type annotation ${name} with type parameters`,
     );
