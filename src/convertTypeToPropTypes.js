@@ -65,7 +65,8 @@ function typeToValue(node) {
 }
 
 function isExact(path: Path) {
-  return path.node.id.name === '$Exact' && path.node.type === 'GenericTypeAnnotation';
+  return path.node.type === 'GenericTypeAnnotation' &&
+    (path.node.id.name === '$Exact' || path.context.parentPath.parentPath.node.exact)
 }
 
 type Options = {
@@ -233,7 +234,7 @@ converters.ObjectTypeProperty = (
 
 converters.ObjectTypeSpreadProperty = (path: Path, opts: Options) => {
   const argument = path.get('argument')
-
+path.parent
   // Unless or until the strange default behavior changes in flow (https://github.com/facebook/flow/issues/3214)
   // every property from spread becomes optional unless it uses `...$Exact<T>`
   // @see also explanation of behavior - https://github.com/facebook/flow/issues/3534#issuecomment-287580240

@@ -55,7 +55,6 @@ pluginTester({
         }
       `,
     },
-
     {
       title: 'object type spread exact',
       code: `
@@ -92,7 +91,35 @@ pluginTester({
         }
       `,
     },
-
+    {
+      title: 'object type spread exact shorthand',
+      code: `
+        type C = {
+          c: any
+        };
+        class Foo extends React.Component {
+          props: {
+            a: {| ...C |}
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        type C = {
+          c: any
+        };
+        class Foo extends React.Component {
+          props: {
+            a: {| ...C |}
+          };
+          static propTypes = {
+            a: _PropTypes.shape({
+              c: _PropTypes.any.isRequired
+            }).isRequired
+          };
+        }
+      `,
+    },
     {
       title: 'any',
       code: `
