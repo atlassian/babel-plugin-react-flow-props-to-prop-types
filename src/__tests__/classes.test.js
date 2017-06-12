@@ -20,6 +20,107 @@ pluginTester({
   tests: stripIndents([
     // prop types
     {
+      title: 'object type spread',
+      code: `
+        type C = {
+          c: any
+        };
+        class Foo extends React.Component {
+          props: {
+            a: {
+              b: any,
+              ...C
+            }
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        type C = {
+          c: any
+        };
+        class Foo extends React.Component {
+          props: {
+            a: {
+              b: any;
+              ...C;
+            }
+          };
+          static propTypes = {
+            a: _PropTypes.shape({
+              b: _PropTypes.any.isRequired,
+              c: _PropTypes.any
+            }).isRequired
+          };
+        }
+      `,
+    },
+    {
+      title: 'object type spread exact',
+      code: `
+        type C = {
+          c: any
+        };
+        class Foo extends React.Component {
+          props: {
+            a: {
+              b: any,
+              ...$Exact<C>
+            }
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        type C = {
+          c: any
+        };
+        class Foo extends React.Component {
+          props: {
+            a: {
+              b: any;
+              ...$Exact<C>;
+            }
+          };
+          static propTypes = {
+            a: _PropTypes.shape({
+              b: _PropTypes.any.isRequired,
+              c: _PropTypes.any.isRequired
+            }).isRequired
+          };
+        }
+      `,
+    },
+    {
+      title: 'object type spread exact shorthand',
+      code: `
+        type C = {
+          c: any
+        };
+        class Foo extends React.Component {
+          props: {
+            a: {| ...C |}
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        type C = {
+          c: any
+        };
+        class Foo extends React.Component {
+          props: {
+            a: {| ...C |}
+          };
+          static propTypes = {
+            a: _PropTypes.shape({
+              c: _PropTypes.any.isRequired
+            }).isRequired
+          };
+        }
+      `,
+    },
+    {
       title: 'any',
       code: `
         class Foo extends React.Component {
@@ -652,6 +753,47 @@ pluginTester({
               // This is the a.b prop
               b: _PropTypes.any.isRequired
             }).isRequired
+          };
+        }
+      `,
+    },
+
+    // context types
+    {
+      title: 'context types',
+      code: `
+        class Foo extends React.Component {
+          contextTypes: {
+            a: {
+              b: any,
+              "c": any,
+            }
+          }
+          props: {
+            a: number
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          contextTypes: {
+            a: {
+              b: any;
+              "c": any;
+            }
+          };
+          static contextTypes = {
+            a: _PropTypes.shape({
+              b: _PropTypes.any.isRequired,
+              "c": _PropTypes.any.isRequired
+            }).isRequired
+          };
+          props: {
+            a: number
+          };
+          static propTypes = {
+            a: _PropTypes.number.isRequired
           };
         }
       `,

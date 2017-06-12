@@ -1,6 +1,6 @@
 # babel-plugin-react-flow-props-to-prop-types
 
-> Convert Flow React props annotation to PropTypes
+> Convert Flow React `props` and `contextTypes` annotation to PropTypes
 
 - Supports most Flow types (see below)
 - Maintains comments
@@ -28,6 +28,7 @@
   - `interface Stuff {}` - Interfaces
   - `class Thing {}` - Class Declarations
   - `import type {Alias} from "./other";` Type imports
+  - `...Other` and `...$Exact<Other>` - Object type spreads
 
 **Unsupported:**
 
@@ -43,6 +44,9 @@ In:
 
 ```js
 class MyComponent extends React.Component {
+  contextTypes: {
+    theme: Object
+  };
   props: {
     // Add a class name to the root element
     className: string
@@ -56,6 +60,12 @@ Out:
 
 ```js
 class MyComponent extends React.Component {
+  contextTypes: {
+    theme: Object
+  };
+  static contextTypes = {
+    PropTypes.object.isRequired
+  };
   props: {
     // Add a class name to the root element
     className: string
