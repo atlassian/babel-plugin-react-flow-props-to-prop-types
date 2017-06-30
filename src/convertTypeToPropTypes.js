@@ -335,7 +335,7 @@ converters.IntersectionTypeAnnotation = (
   }
 };
 
-function _convertImportSpecifier(path: Path, opts: Options) {
+function _convertImportSpecifier(path: Path, opts: Options, id, topLevel) {
   let kind = path.parent.importKind;
   if (kind === 'typeof') {
     throw error(path, 'import typeof is unsupported');
@@ -358,15 +358,20 @@ function _convertImportSpecifier(path: Path, opts: Options) {
     throw error(path, 'Missing matching export');
   }
 
-  return convert(exported, opts, t.identifier(name));
+  return convert(exported, opts, t.identifier(name), topLevel);
 }
 
-converters.ImportDefaultSpecifier = (path: Path, opts: Options) => {
-  return _convertImportSpecifier(path, opts);
+converters.ImportDefaultSpecifier = (
+  path: Path,
+  opts: Options,
+  id,
+  topLevel,
+) => {
+  return _convertImportSpecifier(path, opts, undefined, topLevel);
 };
 
-converters.ImportSpecifier = (path: Path, opts: Options) => {
-  return _convertImportSpecifier(path, opts);
+converters.ImportSpecifier = (path: Path, opts: Options, id, topLevel) => {
+  return _convertImportSpecifier(path, opts, undefined, topLevel);
 };
 
 let convert = function(
