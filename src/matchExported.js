@@ -1,5 +1,5 @@
 // @flow
-import explodeModule from 'babel-explode-module';
+import {explodeModule} from 'babel-explode-module';
 import {explodedToStatements} from 'babel-helper-simplify-module';
 import {format} from 'babel-log';
 import * as t from 'babel-types';

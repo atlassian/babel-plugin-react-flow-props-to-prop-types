@@ -239,6 +239,12 @@ babel-explode-module@^1.4.0:
   dependencies:
     babel-types "^6.24.1"
 
+babel-explode-module@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/babel-explode-module/-/babel-explode-module-2.0.0.tgz#d635653b44b1bdf1d5ceafacafb891611876ce3b"
+  dependencies:
+    babel-types "^6.24.1"
+
 babel-file-loader@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/babel-file-loader/-/babel-file-loader-1.0.2.tgz#c84e1e30ff031ee90cc843084d2dde3d0a78a3f0"

@@ -656,6 +656,31 @@ pluginTester({
         }
       `,
     },
+    {
+      title: 'PropTypes replacement',
+      code: `
+        import type { PropType } from "babel-plugin-react-flow-props-to-prop-types";
+
+        class Foo extends React.Component {
+          props: {
+            a: PropType<UnknownFunctionType, Function>
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        import type { PropType } from "babel-plugin-react-flow-props-to-prop-types";
+
+        class Foo extends React.Component {
+          props: {
+            a: PropType<UnknownFunctionType, Function>
+          };
+          static propTypes = {
+            a: _PropTypes.func.isRequired
+          };
+        }
+      `,
+    },
   ]),
 });
 

@@ -6,6 +6,7 @@ import {loadImportSync} from 'babel-file-loader';
 import matchExported from './matchExported';
 import error from './error';
 import {findFlowBinding} from 'babel-flow-scope';
+import {explodeStatement} from 'babel-explode-module';
 
 function cloneComments(comments) {
   return (
@@ -184,6 +185,12 @@ let typeParametersConverters = {
   },
 };
 
+let pluginTypeConverters = {
+  PropType: (path: Path, opts: Options) => {
+    return convert(path.get('typeParameters').get('params')[1], opts);
+  },
+};
+
 converters.GenericTypeAnnotation = (path: Path, opts: Options) => {
   if (!path.node.typeParameters) {
     return convert(path.get('id'), opts);
@@ -193,12 +200,29 @@ converters.GenericTypeAnnotation = (path: Path, opts: Options) => {
 
   if (typeParametersConverters[name]) {
     return typeParametersConverters[name](path, opts);
-  } else {
-    throw error(
-      path,
-      `Unsupported generic type annotation with type parameters`,
-    );
   }
+
+  let binding = path.scope.getBinding(name);
+
+  if (binding) {
+    let statement = binding.path.parentPath;
+    let exploded = explodeStatement(statement.node);
+    let matched = exploded.imports.find(specifier => {
+      return specifier.local === name;
+    });
+
+    if (
+      matched &&
+      matched.kind === 'type' &&
+      matched.source === 'babel-plugin-react-flow-props-to-prop-types' &&
+      matched.external &&
+      pluginTypeConverters[matched.external]
+    ) {
+      return pluginTypeConverters[matched.external](path, opts);
+    }
+  }
+
+  throw error(path, `Unsupported generic type annotation with type parameters`);
 };
 
 let typeIdentifierConverters = {

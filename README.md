@@ -114,3 +114,27 @@ require("babel-core").transform("code", {
 ### `resolveOpts` (optional)
 
 Passed through to [node-resolve](https://github.com/substack/node-resolve)
+
+### Override type used in propTypes
+
+Sometimes you have Flow types which cannot be translated into PropTypes. In
+these scenarios you can provide your own type:
+
+```js
+import type {PropType} from "babel-plugin-react-flow-props-to-prop-types";
+
+class MyComponent extends React.Component {
+  props: {
+    foo: PropType<UnknownFunctionType, Function>
+  };
+}
+```
+
+PropType is defined as:
+
+```js
+type PropType<T, R> = T;
+```
+
+So Flow will use the first type you provide, while this Babel plugin will use
+the second.
