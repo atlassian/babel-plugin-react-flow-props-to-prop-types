@@ -305,13 +305,14 @@ function _convertImportSpecifier(path: Path, opts: Options) {
   }
 
   let file = loadImportSync(path.parentPath, opts.resolveOpts);
-  let local = path.node.local.name;
   let name;
 
   if (path.type === 'ImportDefaultSpecifier' && kind === 'value') {
     name = 'default';
+  } else if (path.node.imported) {
+    name = path.node.imported.name;
   } else {
-    name = local;
+    name = path.node.local.name;
   }
 
   let exported = matchExported(file, name);
