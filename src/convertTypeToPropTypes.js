@@ -101,11 +101,16 @@ converters.QualifiedTypeIdentifier = createThrows(
   'qualified type identifiers unsupported',
 );
 
-converters.TypeAnnotation = (path: Path, opts: Options) => {
-  return convert(path.get('typeAnnotation'), opts);
+converters.TypeAnnotation = (path: Path, opts: Options, id, topLevel) => {
+  return convert(path.get('typeAnnotation'), opts, id, topLevel);
 };
 
-converters.ObjectTypeAnnotation = (path: Path, opts: Options) => {
+converters.ObjectTypeAnnotation = function(
+  path: Path,
+  opts: Options,
+  id,
+  topLevel: boolean,
+) {
   let {properties, indexers, callProperties} = path.node;
 
   if (properties.length && indexers.length) {
@@ -140,9 +145,13 @@ converters.ObjectTypeAnnotation = (path: Path, opts: Options) => {
 
     let object = t.objectExpression(props);
 
-    return t.callExpression(refPropTypes(t.identifier('shape'), opts), [
-      object,
-    ]);
+    if (topLevel) {
+      return object;
+    } else {
+      return t.callExpression(refPropTypes(t.identifier('shape'), opts), [
+        object,
+      ]);
+    }
   }
 };
 
@@ -191,9 +200,14 @@ let pluginTypeConverters = {
   },
 };
 
-converters.GenericTypeAnnotation = (path: Path, opts: Options) => {
+converters.GenericTypeAnnotation = (
+  path: Path,
+  opts: Options,
+  id,
+  topLevel,
+) => {
   if (!path.node.typeParameters) {
-    return convert(path.get('id'), opts);
+    return convert(path.get('id'), opts, id, topLevel);
   }
 
   let name = path.node.id.name;
@@ -230,7 +244,7 @@ let typeIdentifierConverters = {
   Object: createConversion('object'),
 };
 
-converters.Identifier = (path: Path, opts: Options) => {
+converters.Identifier = (path: Path, opts: Options, id, topLevel) => {
   let name = path.node.name;
 
   if (path.parentPath.isFlow() && typeIdentifierConverters[name]) {
@@ -255,11 +269,11 @@ converters.Identifier = (path: Path, opts: Options) => {
     throw new Error(`Unexpected Flow binding kind: ${binding.kind}`);
   }
 
-  return convert(bindingPath, opts);
+  return convert(bindingPath, opts, id, topLevel);
 };
 
-converters.TypeAlias = (path: Path, opts: Options) => {
-  return convert(path.get('right'), opts);
+converters.TypeAlias = (path: Path, opts: Options, id, topLevel) => {
+  return convert(path.get('right'), opts, id, topLevel);
 };
 
 converters.InterfaceDeclaration = (path: Path, opts: Options) => {
@@ -289,13 +303,36 @@ converters.UnionTypeAnnotation = (path: Path, opts: Options) => {
   return t.callExpression(refPropTypes(t.identifier(propType), opts), [arr]);
 };
 
-converters.IntersectionTypeAnnotation = (path: Path, opts: Options) => {
-  return t.callExpression(
-    opts.getPropTypesAllRef(),
-    path.get('types').map(type => {
-      return convert(type, opts);
-    }),
-  );
+converters.IntersectionTypeAnnotation = (
+  path: Path,
+  opts: Options,
+  id,
+  topLevel,
+) => {
+  if (!topLevel) {
+    return t.callExpression(
+      opts.getPropTypesAllRef(),
+      path.get('types').map(type => {
+        return convert(type, opts);
+      }),
+    );
+  } else {
+    let properties = [];
+
+    path.get('types').forEach(type => {
+      let result = convert(type, opts, undefined, true);
+
+      if (!t.isObjectExpression(result)) {
+        throw type.buildCodeFrameError(
+          'Cannot have intersection of non-objects or complex objects as top-level props',
+        );
+      }
+
+      properties = properties.concat(result.properties);
+    });
+
+    return t.objectExpression(properties);
+  }
 };
 
 function _convertImportSpecifier(path: Path, opts: Options) {
@@ -332,19 +369,25 @@ converters.ImportSpecifier = (path: Path, opts: Options) => {
   return _convertImportSpecifier(path, opts);
 };
 
-let convert = (path: Path, opts: Options, id?: Node): Node => {
+let convert = function(
+  path: Path,
+  opts: Options,
+  id?: Node,
+  topLevel?: boolean,
+): Node {
   let converter = converters[path.type];
 
   if (!converter) {
     throw error(path, `No converter for node type: ${path.type}`);
   }
 
-  return inheritsComments(converter(path, opts, id), path.node);
+  // console.log(`convert(${path.type}, ${opts}, ${String(id)}, ${String(topLevel)})`);
+  return inheritsComments(converter(path, opts, id, topLevel), path.node);
 };
 
 export default function convertTypeToPropTypes(
   typeAnnotation: Path,
   opts: Options,
 ): Node {
-  return convert(typeAnnotation, opts).arguments[0];
+  return convert(typeAnnotation, opts, undefined, true);
 }

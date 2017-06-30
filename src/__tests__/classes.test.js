@@ -681,6 +681,33 @@ pluginTester({
         }
       `,
     },
+    {
+      title: 'top-level intersection objects',
+      code: `
+        class Foo extends React.Component {
+          props: { foo: boolean } & { bar: boolean };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: { foo: boolean } & { bar: boolean };
+          static propTypes = {
+            foo: _PropTypes.bool.isRequired,
+            bar: _PropTypes.bool.isRequired
+          };
+        }
+      `,
+    },
+    {
+      title: 'top-level intersection non-objects',
+      code: `
+        class Foo extends React.Component {
+          props: boolean & number;
+        }
+      `,
+      error: true,
+    },
   ]),
 });
 
