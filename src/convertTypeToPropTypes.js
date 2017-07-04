@@ -91,9 +91,11 @@ converters.TupleTypeAnnotation = createConversion('array');
 
 converters.NullableTypeAnnotation = (path: Path, opts: Options) => {
   return t.callExpression(refPropTypes(t.identifier('oneOf'), opts), [
-    t.valueToNode(null),
-    t.valueToNode(undefined),
-    convert(path.get('typeAnnotation'), opts),
+    t.arrayExpression([
+      t.valueToNode(null),
+      t.valueToNode(undefined),
+      convert(path.get('typeAnnotation'), opts),
+    ]),
   ]);
 };
 

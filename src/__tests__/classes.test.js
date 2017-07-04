@@ -353,7 +353,7 @@ pluginTester({
             a: ?boolean
           };
           static propTypes = {
-            a: _PropTypes.oneOf(null, undefined, _PropTypes.bool).isRequired
+            a: _PropTypes.oneOf([null, undefined, _PropTypes.bool]).isRequired
           };
         }
       `,
