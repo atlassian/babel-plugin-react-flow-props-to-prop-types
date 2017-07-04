@@ -2,7 +2,7 @@
 
 export type Node = {
   type: string,
-  [prop: string]: any,
+  [prop: any]: any,
 };
 
 export type Path = {

@@ -140,7 +140,7 @@ converters.ObjectTypeAnnotation = function(
     let props = [];
 
     for (let property of path.get('properties')) {
-      props.push(convert(property, opts));
+      props.push(convert(property, opts, undefined, topLevel));
     }
 
     let object = t.objectExpression(props);
@@ -155,24 +155,29 @@ converters.ObjectTypeAnnotation = function(
   }
 };
 
-converters.ObjectTypeProperty = (path: Path, opts: Options) => {
+converters.ObjectTypeProperty = (
+  path: Path,
+  opts: Options,
+  id,
+  topLevel: boolean,
+) => {
   let key = path.get('key');
   let value = path.get('value');
 
-  let id;
+  let keyId;
   if (key.isStringLiteral()) {
-    id = t.stringLiteral(key.node.value);
+    keyId = t.stringLiteral(key.node.value);
   } else {
-    id = t.identifier(key.node.name);
+    keyId = t.identifier(key.node.name);
   }
 
-  let converted = convert(value, opts);
+  let converted = convert(value, opts, undefined, undefined, topLevel);
 
-  if (!path.node.optional) {
+  if (!path.node.optional && !converted[OPTIONAL]) {
     converted = t.memberExpression(converted, t.identifier('isRequired'));
   }
 
-  return t.objectProperty(inheritsComments(id, key.node), converted);
+  return t.objectProperty(inheritsComments(keyId, key.node), converted);
 };
 
 converters.ObjectTypeIndexer = (path: Path, opts: Options) => {
@@ -194,9 +199,20 @@ let typeParametersConverters = {
   },
 };
 
+function getTypeParam(path, index) {
+  return path.get('typeParameters').get('params')[index];
+}
+
+const OPTIONAL = Symbol('optional');
+
 let pluginTypeConverters = {
   PropType: (path: Path, opts: Options) => {
-    return convert(path.get('typeParameters').get('params')[1], opts);
+    return convert(getTypeParam(path, 1), opts);
+  },
+  HasDefaultProp: (path: Path, opts: Options) => {
+    let converted = convert(getTypeParam(path, 0), opts);
+    converted[OPTIONAL] = true;
+    return converted;
   },
 };
 
@@ -379,6 +395,7 @@ let convert = function(
   opts: Options,
   id?: Node,
   topLevel?: boolean,
+  allowOptional?: boolean,
 ): Node {
   let converter = converters[path.type];
 
@@ -387,7 +404,19 @@ let convert = function(
   }
 
   // console.log(`convert(${path.type}, ${opts}, ${String(id)}, ${String(topLevel)})`);
-  return inheritsComments(converter(path, opts, id, topLevel), path.node);
+  let converted = inheritsComments(
+    converter(path, opts, id, topLevel),
+    path.node,
+  );
+
+  if (!allowOptional && converted[OPTIONAL]) {
+    throw error(
+      path,
+      'HasDefaultProp<T> must only be used as the immediate value inside `props: {}`',
+    );
+  }
+
+  return converted;
 };
 
 export default function convertTypeToPropTypes(

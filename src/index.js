@@ -78,3 +78,4 @@ export default function() {
 }
 
 export type PropType<T, R> = T;
+export type HasDefaultProp<T> = T;

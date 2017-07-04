@@ -708,6 +708,44 @@ pluginTester({
       `,
       error: true,
     },
+    {
+      title: 'HasDefaultProp',
+      code: `
+        import type { HasDefaultProp } from "babel-plugin-react-flow-props-to-prop-types";
+
+        class Foo extends React.Component {
+          props: {
+            a: HasDefaultProp<Function>
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        import type { HasDefaultProp } from "babel-plugin-react-flow-props-to-prop-types";
+
+        class Foo extends React.Component {
+          props: {
+            a: HasDefaultProp<Function>
+          };
+          static propTypes = {
+            a: _PropTypes.func
+          };
+        }
+      `,
+    },
+    {
+      title: 'HasDefaultProp',
+      code: `
+        import type { HasDefaultProp } from "babel-plugin-react-flow-props-to-prop-types";
+
+        class Foo extends React.Component {
+          props: {
+            a: { b: HasDefaultProp<Function> }
+          };
+        }
+      `,
+      error: true,
+    },
   ]),
 });
 
