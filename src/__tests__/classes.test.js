@@ -359,6 +359,33 @@ pluginTester({
       `,
     },
     {
+      title: 'maybe nested object value',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            a: {
+              b: ?boolean
+            }
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: {
+              b: ?boolean
+            }
+          };
+          static propTypes = {
+            a: _PropTypes.shape({
+              b: _PropTypes.bool
+            }).isRequired
+          };
+        }
+      `,
+    },
+    {
       title: 'maybe non-object value',
       code: `
         class Foo extends React.Component {
