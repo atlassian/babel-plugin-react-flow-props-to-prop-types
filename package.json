@@ -26,6 +26,7 @@
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-plugin-tester": "^3.0.0",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-env": "^1.4.0",
     "babel-preset-flow": "^6.23.0",
     "flow-bin": "^0.46.0",
@@ -49,6 +50,7 @@
     "babel-errors": "^1.1.0",
     "babel-explode-module": "^2.0.0",
     "babel-file-loader": "^1.0.1",
+    "babel-flow-identifiers": "^1.1.2",
     "babel-flow-scope": "^1.2.0",
     "babel-helper-simplify-module": "^2.2.0",
     "babel-log": "^1.0.3",

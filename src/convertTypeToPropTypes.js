@@ -5,8 +5,15 @@ import {log} from 'babel-log';
 import {loadImportSync} from 'babel-file-loader';
 import matchExported from './matchExported';
 import error from './error';
+import {isFlowIdentifier} from 'babel-flow-identifiers';
 import {findFlowBinding} from 'babel-flow-scope';
 import {explodeStatement} from 'babel-explode-module';
+
+type Context = {
+  replacementId?: Node,
+  isTopLevel?: boolean,
+  isObjectValue?: boolean,
+};
 
 function cloneComments(comments) {
   return (
@@ -57,21 +64,27 @@ type Options = {
   resolveOpts?: Object,
 };
 
-let refPropTypes = (property: Node, opts: Options): Node => {
+let refPropTypes = (property: Node, opts: Options, context: Context): Node => {
   return t.memberExpression(opts.getPropTypesRef(), property);
 };
 
-let createThrows = message => (path: Path, opts: Options) => {
+let createThrows = message => (path: Path, opts: Options, context: Context) => {
   throw error(path, message);
 };
 
-let createConversion = name => (path: Path, opts: Options): Node => {
-  return refPropTypes(t.identifier(name), opts);
+let createConversion = name => (
+  path: Path,
+  opts: Options,
+  context: Context,
+): Node => {
+  return refPropTypes(t.identifier(name), opts, context);
 };
 
-let convertLiteral = (path: Path, opts: Options): Node => {
+let convertLiteral = (path: Path, opts: Options, context: Context): Node => {
   let arr = t.arrayExpression([typeToValue(path.node)]);
-  return t.callExpression(refPropTypes(t.identifier('oneOf'), opts), [arr]);
+  return t.callExpression(refPropTypes(t.identifier('oneOf'), opts, context), [
+    arr,
+  ]);
 };
 
 let converters = {};
@@ -89,12 +102,16 @@ converters.VoidTypeAnnotation = convertLiteral;
 converters.FunctionTypeAnnotation = createConversion('func');
 converters.TupleTypeAnnotation = createConversion('array');
 
-converters.NullableTypeAnnotation = (path: Path, opts: Options) => {
-  return t.callExpression(refPropTypes(t.identifier('oneOf'), opts), [
+converters.NullableTypeAnnotation = (
+  path: Path,
+  opts: Options,
+  context: Context,
+) => {
+  return t.callExpression(refPropTypes(t.identifier('oneOf'), opts, context), [
     t.arrayExpression([
       t.valueToNode(null),
       t.valueToNode(undefined),
-      convert(path.get('typeAnnotation'), opts),
+      convert(path.get('typeAnnotation'), opts, context),
     ]),
   ]);
 };
@@ -103,15 +120,14 @@ converters.QualifiedTypeIdentifier = createThrows(
   'qualified type identifiers unsupported',
 );
 
-converters.TypeAnnotation = (path: Path, opts: Options, id, topLevel) => {
-  return convert(path.get('typeAnnotation'), opts, id, topLevel);
+converters.TypeAnnotation = (path: Path, opts: Options, context: Context) => {
+  return convert(path.get('typeAnnotation'), opts, context);
 };
 
 converters.ObjectTypeAnnotation = function(
   path: Path,
   opts: Options,
-  id,
-  topLevel: boolean,
+  context: Context,
 ) {
   let {properties, indexers, callProperties} = path.node;
 
@@ -135,24 +151,26 @@ converters.ObjectTypeAnnotation = function(
 
   if (indexers.length) {
     let indexer = path.get('indexers')[0];
-    return t.callExpression(refPropTypes(t.identifier('objectOf'), opts), [
-      convert(indexer, opts),
-    ]);
+    return t.callExpression(
+      refPropTypes(t.identifier('objectOf'), opts, context),
+      [convert(indexer, opts, context)],
+    );
   } else {
     let props = [];
 
     for (let property of path.get('properties')) {
-      props.push(convert(property, opts, undefined, topLevel));
+      props.push(convert(property, opts, context));
     }
 
     let object = t.objectExpression(props);
 
-    if (topLevel) {
+    if (context.isTopLevel) {
       return object;
     } else {
-      return t.callExpression(refPropTypes(t.identifier('shape'), opts), [
-        object,
-      ]);
+      return t.callExpression(
+        refPropTypes(t.identifier('shape'), opts, context),
+        [object],
+      );
     }
   }
 };
@@ -160,8 +178,7 @@ converters.ObjectTypeAnnotation = function(
 converters.ObjectTypeProperty = (
   path: Path,
   opts: Options,
-  id,
-  topLevel: boolean,
+  context: Context,
 ) => {
   let key = path.get('key');
   let value = path.get('value');
@@ -173,7 +190,11 @@ converters.ObjectTypeProperty = (
     keyId = t.identifier(key.node.name);
   }
 
-  let converted = convert(value, opts, undefined, undefined, topLevel);
+  let converted = convert(value, opts, {
+    ...context,
+    isTopLevel: false,
+    allowOptional: context.isTopLevel,
+  });
 
   if (!path.node.optional && !converted[OPTIONAL]) {
     converted = t.memberExpression(converted, t.identifier('isRequired'));
@@ -182,22 +203,32 @@ converters.ObjectTypeProperty = (
   return t.objectProperty(inheritsComments(keyId, key.node), converted);
 };
 
-converters.ObjectTypeIndexer = (path: Path, opts: Options) => {
-  return convert(path.get('value'), opts);
+converters.ObjectTypeIndexer = (
+  path: Path,
+  opts: Options,
+  context: Context,
+) => {
+  return convert(path.get('value'), opts, context);
 };
 
-converters.ArrayTypeAnnotation = (path: Path, opts: Options) => {
-  return t.callExpression(refPropTypes(t.identifier('arrayOf'), opts), [
-    convert(path.get('elementType'), opts),
-  ]);
+converters.ArrayTypeAnnotation = (
+  path: Path,
+  opts: Options,
+  context: Context,
+) => {
+  return t.callExpression(
+    refPropTypes(t.identifier('arrayOf'), opts, context),
+    [convert(path.get('elementType'), opts, context)],
+  );
 };
 
 let typeParametersConverters = {
-  Array: (path: Path, opts: Options) => {
+  Array: (path: Path, opts: Options, context: Context) => {
     let param = path.get('typeParameters').get('params')[0];
-    return t.callExpression(refPropTypes(t.identifier('arrayOf'), opts), [
-      convert(param, opts),
-    ]);
+    return t.callExpression(
+      refPropTypes(t.identifier('arrayOf'), opts, context),
+      [convert(param, opts, context)],
+    );
   },
 };
 
@@ -208,11 +239,11 @@ function getTypeParam(path, index) {
 const OPTIONAL = Symbol('optional');
 
 let pluginTypeConverters = {
-  PropType: (path: Path, opts: Options) => {
-    return convert(getTypeParam(path, 1), opts);
+  PropType: (path: Path, opts: Options, context: Context) => {
+    return convert(getTypeParam(path, 1), opts, context);
   },
-  HasDefaultProp: (path: Path, opts: Options) => {
-    let converted = convert(getTypeParam(path, 0), opts);
+  HasDefaultProp: (path: Path, opts: Options, context: Context) => {
+    let converted = convert(getTypeParam(path, 0), opts, context);
     converted[OPTIONAL] = true;
     return converted;
   },
@@ -221,17 +252,16 @@ let pluginTypeConverters = {
 converters.GenericTypeAnnotation = (
   path: Path,
   opts: Options,
-  id,
-  topLevel,
+  context: Context,
 ) => {
   if (!path.node.typeParameters) {
-    return convert(path.get('id'), opts, id, topLevel);
+    return convert(path.get('id'), opts, context);
   }
 
   let name = path.node.id.name;
 
   if (typeParametersConverters[name]) {
-    return typeParametersConverters[name](path, opts);
+    return typeParametersConverters[name](path, opts, context);
   }
 
   let binding = path.scope.getBinding(name);
@@ -250,7 +280,7 @@ converters.GenericTypeAnnotation = (
       matched.external &&
       pluginTypeConverters[matched.external]
     ) {
-      return pluginTypeConverters[matched.external](path, opts);
+      return pluginTypeConverters[matched.external](path, opts, context);
     }
   }
 
@@ -262,49 +292,64 @@ let typeIdentifierConverters = {
   Object: createConversion('object'),
 };
 
-converters.Identifier = (path: Path, opts: Options, id, topLevel) => {
+converters.Identifier = (path: Path, opts: Options, context: Context) => {
   let name = path.node.name;
 
   if (path.parentPath.isFlow() && typeIdentifierConverters[name]) {
-    return typeIdentifierConverters[name](path, opts);
+    return typeIdentifierConverters[name](path, opts, context);
   }
 
-  let binding = findFlowBinding(path, name);
+  let binding;
+  if (isFlowIdentifier(path)) {
+    binding = findFlowBinding(path, name);
+  } else {
+    binding = path.scope.getBinding(name);
+  }
 
   if (!binding) {
     throw error(path, `Missing reference "${name}"`);
   }
 
+  let kind = binding.kind;
   let bindingPath;
 
-  if (binding.kind === 'declaration') {
+  if (kind === 'import' || kind === 'declaration') {
     bindingPath = binding.path.parentPath;
-  } else if (binding.kind === 'import') {
-    bindingPath = binding.path.parentPath;
-  } else if (binding.kind === 'param') {
+  } else if (kind === 'module' || kind === 'let') {
+    bindingPath = binding.path;
+  } else if (kind === 'param') {
     throw binding.path.buildCodeFrameError('Cannot convert type parameters');
   } else {
     throw new Error(`Unexpected Flow binding kind: ${binding.kind}`);
   }
 
-  return convert(bindingPath, opts, id, topLevel);
+  return convert(bindingPath, opts, context);
 };
 
-converters.TypeAlias = (path: Path, opts: Options, id, topLevel) => {
-  return convert(path.get('right'), opts, id, topLevel);
+converters.TypeAlias = (path: Path, opts: Options, context: Context) => {
+  return convert(path.get('right'), opts, context);
 };
 
-converters.InterfaceDeclaration = (path: Path, opts: Options) => {
-  return convert(path.get('body'), opts);
+converters.InterfaceDeclaration = (
+  path: Path,
+  opts: Options,
+  context: Context,
+) => {
+  return convert(path.get('body'), opts, context);
 };
 
-converters.ClassDeclaration = (path: Path, opts: Options, id?: Node) => {
-  return t.callExpression(refPropTypes(t.identifier('instanceOf'), opts), [
-    id || t.identifier(path.node.id.name),
-  ]);
+converters.ClassDeclaration = (path: Path, opts: Options, context: Context) => {
+  return t.callExpression(
+    refPropTypes(t.identifier('instanceOf'), opts, context),
+    [context.replacementId || t.identifier(path.node.id.name)],
+  );
 };
 
-converters.UnionTypeAnnotation = (path: Path, opts: Options) => {
+converters.UnionTypeAnnotation = (
+  path: Path,
+  opts: Options,
+  context: Context,
+) => {
   let isLiterals = path.node.types.every(isLiteralTypeAnnotation);
   let propType;
   let elements;
@@ -314,31 +359,32 @@ converters.UnionTypeAnnotation = (path: Path, opts: Options) => {
     elements = path.get('types').map(p => typeToValue(p.node));
   } else {
     propType = 'oneOfType';
-    elements = path.get('types').map(p => convert(p, opts));
+    elements = path.get('types').map(p => convert(p, opts, context));
   }
 
   let arr = t.arrayExpression(elements);
-  return t.callExpression(refPropTypes(t.identifier(propType), opts), [arr]);
+  return t.callExpression(refPropTypes(t.identifier(propType), opts, context), [
+    arr,
+  ]);
 };
 
 converters.IntersectionTypeAnnotation = (
   path: Path,
   opts: Options,
-  id,
-  topLevel,
+  context: Context,
 ) => {
-  if (!topLevel) {
+  if (!context.isTopLevel) {
     return t.callExpression(
       opts.getPropTypesAllRef(),
       path.get('types').map(type => {
-        return convert(type, opts);
+        return convert(type, opts, context);
       }),
     );
   } else {
     let properties = [];
 
     path.get('types').forEach(type => {
-      let result = convert(type, opts, undefined, true);
+      let result = convert(type, opts, context);
 
       if (!t.isObjectExpression(result)) {
         throw type.buildCodeFrameError(
@@ -353,15 +399,15 @@ converters.IntersectionTypeAnnotation = (
   }
 };
 
-function _convertImportSpecifier(path: Path, opts: Options, id, topLevel) {
+function _convertImportSpecifier(path: Path, opts: Options, context) {
   let kind = path.parent.importKind;
   if (kind === 'typeof') {
     throw error(path, 'import typeof is unsupported');
   }
 
   let file = loadImportSync(path.parentPath, opts.resolveOpts);
-  let name;
 
+  let name;
   if (path.type === 'ImportDefaultSpecifier' && kind === 'value') {
     name = 'default';
   } else if (path.node.imported) {
@@ -370,48 +416,48 @@ function _convertImportSpecifier(path: Path, opts: Options, id, topLevel) {
     name = path.node.local.name;
   }
 
+  let id;
+  if (path.node.imported) {
+    id = path.node.imported.name;
+  } else {
+    id = path.node.local.name;
+  }
+
   let exported = matchExported(file, name);
 
   if (!exported) {
     throw error(path, 'Missing matching export');
   }
 
-  return convert(exported, opts, t.identifier(name), topLevel);
+  return convert(exported, opts, {
+    ...context,
+    replacementId: t.identifier(id),
+  });
 }
 
 converters.ImportDefaultSpecifier = (
   path: Path,
   opts: Options,
-  id,
-  topLevel,
+  context: Context,
 ) => {
-  return _convertImportSpecifier(path, opts, undefined, topLevel);
+  return _convertImportSpecifier(path, opts, context);
 };
 
-converters.ImportSpecifier = (path: Path, opts: Options, id, topLevel) => {
-  return _convertImportSpecifier(path, opts, undefined, topLevel);
+converters.ImportSpecifier = (path: Path, opts: Options, context: Context) => {
+  return _convertImportSpecifier(path, opts, context);
 };
 
-let convert = function(
-  path: Path,
-  opts: Options,
-  id?: Node,
-  topLevel?: boolean,
-  allowOptional?: boolean,
-): Node {
+let convert = function(path: Path, opts: Options, context: Context): Node {
   let converter = converters[path.type];
 
   if (!converter) {
     throw error(path, `No converter for node type: ${path.type}`);
   }
 
-  // console.log(`convert(${path.type}, ${opts}, ${String(id)}, ${String(topLevel)})`);
-  let converted = inheritsComments(
-    converter(path, opts, id, topLevel),
-    path.node,
-  );
+  // console.log(`convert(${path.type}, ${JSON.stringify(opts)}, ${JSON.stringify(context)})`);
+  let converted = inheritsComments(converter(path, opts, context), path.node);
 
-  if (!allowOptional && converted[OPTIONAL]) {
+  if (!context.allowOptional && converted[OPTIONAL]) {
     throw error(
       path,
       'HasDefaultProp<T> must only be used as the immediate value inside `props: {}`',
@@ -425,5 +471,5 @@ export default function convertTypeToPropTypes(
   typeAnnotation: Path,
   opts: Options,
 ): Node {
-  return convert(typeAnnotation, opts, undefined, true);
+  return convert(typeAnnotation, opts, {isTopLevel: true});
 }
