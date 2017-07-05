@@ -338,7 +338,7 @@ pluginTester({
       `,
     },
     {
-      title: 'maybe',
+      title: 'maybe object value',
       code: `
         class Foo extends React.Component {
           props: {
@@ -353,7 +353,28 @@ pluginTester({
             a: ?boolean
           };
           static propTypes = {
-            a: _PropTypes.oneOf([null, undefined, _PropTypes.bool]).isRequired
+            a: _PropTypes.bool
+          };
+        }
+      `,
+    },
+    {
+      title: 'maybe non-object value',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            a: Array<?boolean>
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: Array<?boolean>
+          };
+          static propTypes = {
+            a: _PropTypes.arrayOf(_PropTypes.oneOf([null, undefined, _PropTypes.bool])).isRequired
           };
         }
       `,
@@ -734,7 +755,7 @@ pluginTester({
       `,
     },
     {
-      title: 'HasDefaultProp',
+      title: 'HasDefaultProp error',
       code: `
         import type { HasDefaultProp } from "babel-plugin-react-flow-props-to-prop-types";
 
