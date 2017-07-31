@@ -263,9 +263,9 @@ let typeParametersConverters = {
       convert(param, opts, context),
     ]);
   },
-  '$Exact': (path: Path, opts: Options) => {
+  '$Exact': (path: Path, opts: Options, context: Context) => {
     let param = path.get('typeParameters').get('params')[0];
-    return convert(param, opts);
+    return convert(param, opts, context);
   },
 };
 
