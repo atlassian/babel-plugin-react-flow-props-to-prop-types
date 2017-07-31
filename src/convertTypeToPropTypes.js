@@ -179,11 +179,7 @@ converters.ObjectTypeAnnotation = function(
       //  ObjectTypeSpreadProperty - Array<objectProperty>
       const converted = convert(property, opts, {...context, depth: context.depth + 1});
       if (Array.isArray(converted)){
-        converted.forEach((prop) =>
-          props.push(
-            convert(prop),
-          )
-        );
+        converted.forEach((prop) => props.push(prop));
       }
       else {
         props.push(converted);
