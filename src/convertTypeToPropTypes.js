@@ -1,7 +1,6 @@
 // @flow
 import type {Path, Node} from './types';
 import * as t from 'babel-types';
-import {log} from 'babel-log';
 import {loadImportSync} from 'babel-file-loader';
 import matchExported from './matchExported';
 import error from './error';
@@ -175,9 +174,6 @@ converters.ObjectTypeAnnotation = function(
     let props = [];
 
     for (let property of path.get('properties')) {
-      props.push(
-        convert(property, opts, {...context, depth: context.depth + 1}),
-      );
       // result may be from:
       //  ObjectTypeProperty - objectProperty
       //  ObjectTypeSpreadProperty - Array<objectProperty>
@@ -232,13 +228,17 @@ converters.ObjectTypeProperty = (
   return t.objectProperty(inheritsComments(keyId, key.node), converted);
 };
 
-converters.ObjectTypeSpreadProperty = (path: Path, opts: Options) => {
+converters.ObjectTypeSpreadProperty = (
+  path: Path,
+  opts: Options,
+  context: Context,
+) => {
   const argument = path.get('argument')
-path.parent
+
   // Unless or until the strange default behavior changes in flow (https://github.com/facebook/flow/issues/3214)
   // every property from spread becomes optional unless it uses `...$Exact<T>`
   // @see also explanation of behavior - https://github.com/facebook/flow/issues/3534#issuecomment-287580240
-  const converted = convert(argument, {...opts, nonExactSpread: !isExact(argument)});
+  const converted = convert(argument, {...opts, nonExactSpread: !isExact(argument)}, context);
 
   // @returns flattened properties from shape
   return converted.arguments[0].properties;
