@@ -534,6 +534,27 @@ pluginTester({
       `,
     },
     {
+      title: 'RegExp',
+      code: `
+        class Foo extends React.Component {
+          props: {
+            a: RegExp
+          };
+        }
+      `,
+      output: `
+        import _PropTypes from "prop-types";
+        class Foo extends React.Component {
+          props: {
+            a: RegExp
+          };
+          static propTypes = {
+            a: _PropTypes.instanceOf(RegExp).isRequired
+          };
+        }
+      `,
+    },
+    {
       title: 'Array',
       code: `
         class Foo extends React.Component {

@@ -299,9 +299,16 @@ converters.GenericTypeAnnotation = (
   throw error(path, `Unsupported generic type annotation with type parameters`);
 };
 
+function convertRegExp(path: Path, opts: Options, context: Context) {
+  return t.callExpression(refPropTypes(t.identifier('instanceOf'), opts), [
+    t.identifier('RegExp'),
+  ]);
+}
+
 let typeIdentifierConverters = {
   Function: createConversion('func'),
   Object: createConversion('object'),
+  RegExp: convertRegExp,
 };
 
 converters.Identifier = (path: Path, opts: Options, context: Context) => {

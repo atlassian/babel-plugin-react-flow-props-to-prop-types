@@ -21,6 +21,7 @@
 - `Array<string>` Arrays
 - `Object` Unknown Objects
 - `Function` Unknown Functions
+- `RegExp` regular expressions
 - `boolean | string` Unions
 - `{ foo: number } & { bar: string }` Intersections
 - Referencing other types:
