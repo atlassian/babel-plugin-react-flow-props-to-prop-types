@@ -1,7 +1,6 @@
 // @flow
 import type {Path, Node} from './types';
 import * as t from 'babel-types';
-import {log} from 'babel-log';
 import {loadImportSync} from 'babel-file-loader';
 import matchExported from './matchExported';
 import error from './error';
@@ -64,10 +63,16 @@ function typeToValue(node) {
   return t.valueToNode(value);
 }
 
+function isExact(path: Path) {
+  return path.node.type === 'GenericTypeAnnotation' &&
+    (path.node.id.name === '$Exact' || path.context.parentPath.parentPath.node.exact)
+}
+
 type Options = {
   getPropTypesRef: () => Node,
   getPropTypesAllRef: () => Node,
   resolveOpts?: Object,
+  nonExactSpread?: boolean,
 };
 
 let refPropTypes = (property: Node, opts: Options): Node => {
@@ -169,9 +174,16 @@ converters.ObjectTypeAnnotation = function(
     let props = [];
 
     for (let property of path.get('properties')) {
-      props.push(
-        convert(property, opts, {...context, depth: context.depth + 1}),
-      );
+      // result may be from:
+      //  ObjectTypeProperty - objectProperty
+      //  ObjectTypeSpreadProperty - Array<objectProperty>
+      const converted = convert(property, opts, {...context, depth: context.depth + 1});
+      if (Array.isArray(converted)){
+        converted.forEach((prop) => props.push(prop));
+      }
+      else {
+        props.push(converted);
+      }
     }
 
     let object = t.objectExpression(props);
@@ -203,11 +215,27 @@ converters.ObjectTypeProperty = (
 
   let converted = convert(value, opts, context);
 
-  if (!path.node.optional && !converted[OPTIONAL]) {
+  if (!path.node.optional && !converted[OPTIONAL] && !opts.nonExactSpread) {
     converted = t.memberExpression(converted, t.identifier('isRequired'));
   }
 
   return t.objectProperty(inheritsComments(keyId, key.node), converted);
+};
+
+converters.ObjectTypeSpreadProperty = (
+  path: Path,
+  opts: Options,
+  context: Context,
+) => {
+  const argument = path.get('argument')
+
+  // Unless or until the strange default behavior changes in flow (https://github.com/facebook/flow/issues/3214)
+  // every property from spread becomes optional unless it uses `...$Exact<T>`
+  // @see also explanation of behavior - https://github.com/facebook/flow/issues/3534#issuecomment-287580240
+  const converted = convert(argument, {...opts, nonExactSpread: !isExact(argument)}, context);
+
+  // @returns flattened properties from shape
+  return converted.arguments[0].properties;
 };
 
 converters.ObjectTypeIndexer = (
@@ -234,6 +262,10 @@ let typeParametersConverters = {
     return t.callExpression(refPropTypes(t.identifier('arrayOf'), opts), [
       convert(param, opts, context),
     ]);
+  },
+  '$Exact': (path: Path, opts: Options, context: Context) => {
+    let param = path.get('typeParameters').get('params')[0];
+    return convert(param, opts, context);
   },
 };
 

@@ -29,6 +29,7 @@
   - `interface Stuff {}` - Interfaces
   - `class Thing {}` - Class Declarations
   - `import type {Alias} from "./other";` Type imports
+  - `...Other` and `...$Exact<Other>` - Object type spreads
 
 **Unsupported:**
 
