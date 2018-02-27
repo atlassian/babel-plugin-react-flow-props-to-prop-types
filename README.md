@@ -1,3 +1,7 @@
+# DOES NOT WORKS WITH BABEL 7
+
+---
+
 # babel-plugin-react-flow-props-to-prop-types
 
 > Convert Flow React props annotation to PropTypes
