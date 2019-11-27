@@ -32,6 +32,7 @@
 
 **Unsupported:**
 
+- stateless functional components
 - `{ a: number, [b: string]: number }` Combining properties and indexers
 - `{ [a: string]: number, [b: string]: number }` Multiple indexers
 - `{ (): void }` Object call properties
